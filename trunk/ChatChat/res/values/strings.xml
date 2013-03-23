@@ -2,4 +2,8 @@
 
     <string name="app_name">ChatChat</string>
 
+    <!-- Login -->
+    <string name="login_emptyname_or_emptypwd">用户名或密码为空，请重新输入</string>
+    <string name="login_successful">登录成功</string>
+    <string name="login_fail">登录失败</string>
 </resources>

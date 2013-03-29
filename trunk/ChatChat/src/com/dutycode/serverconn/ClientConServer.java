@@ -68,8 +68,6 @@ public class ClientConServer {
 	 */
 	public boolean login(String _username, String _password){
 
-//		XMPPConnection connection = this.getConnection();
-		
 		try{
 			connection.connect();
 			connection.login(_username, _password);
@@ -88,7 +86,6 @@ public class ClientConServer {
 	 * @return 退出结果
 	 */
 	public boolean logoff(){
-//		XMPPConnection connection = this.getConnection();
 		
 		if (connection.isConnected()){
 			connection.disconnect();
@@ -104,12 +101,12 @@ public class ClientConServer {
 	 * @return 好友列表
 	 */
 	public Map<String,Object> getUserList(){
-//		XMPPConnection connection = this.getConnection();
 		
 		Roster roster = connection.getRoster();
-		System.out.println("=====" + roster.getPresence("a").getStatus());
 		Collection<RosterGroup> entriesGroup = roster.getGroups(); 
+		
 		Log.i("michael", entriesGroup.size()+"");
+		
 		Map<String,Object> map = new HashMap<String,Object>();
 		List<Object> listGroup = new ArrayList<Object>();
 		List<Object> listGroupMember = new ArrayList<Object>();

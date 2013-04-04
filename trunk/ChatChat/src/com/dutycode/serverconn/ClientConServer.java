@@ -20,9 +20,10 @@ import android.util.Log;
 
 /**
  * 连接openfire服务器类
+ * 负责连接Openfire
  * @author Michael.Zhang
  * time: 2013-3-22 下午3:32:36
- *
+ * 
  */
 public class ClientConServer {
 	

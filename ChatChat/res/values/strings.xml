@@ -4,6 +4,9 @@
 
     <!-- Login -->
     <string name="login_emptyname_or_emptypwd">用户名或密码为空，请重新输入</string>
+    <string name="login_empty_serverip">服务器IP地址不能为空，请输入IP地址</string>
+    <!-- 错误的IP -->
+    <string name="login_error_serverip">IP地址输入错误，请输入类似192.168.101.101的IP</string>
     <string name="login_successful">登录成功</string>
     <string name="login_fail">登录失败</string>
 </resources>

@@ -27,30 +27,30 @@ import android.util.Log;
  */
 public class ClientConServer {
 	
-	/**
-	 * 端口号
-	 */
-	private static int PORT = 5222;
-	/**
-	 * 服务器地址
-	 */
-	private static String SERVER_ADDR = "192.168.208.40";
-//	private static String SERVER_ADDR = "192.168.1.107";
+
 	private Context context;
 	
-	private static XMPPConnection connection = getConnection();
+	private static XMPPConnection connection ; //声明XMPPconnection对象，将在login方法中进行初始化
 	
+	/**
+	 * 构造方法
+	 * @param _context
+	 */
 	public ClientConServer(Context _context){
 		this.context = _context;
 	}
+
 	public ClientConServer(){}
 	
+	
 	/**
-	 * 取得XMPP链接（私有方法）
+	 * 获取连接
+	 * @param _serverIp 服务器IP地址
+	 * @param _serverPort 服务器端口
 	 * @return
 	 */
-	private static XMPPConnection getConnection(){
-		ConnectionConfiguration config = new ConnectionConfiguration(SERVER_ADDR,PORT);
+	private XMPPConnection getConnection(String _serverIp, int _serverPort){
+		ConnectionConfiguration config = new ConnectionConfiguration(_serverIp, _serverPort);
 		/* 是否启用安全验证 */
 		config.setSASLAuthenticationEnabled(false);
 		/*是否启用调试模式*/
@@ -62,13 +62,18 @@ public class ClientConServer {
 	}
 	
 	/**
-	 * 登录到服务器
-	 * @param _username
-	 * @param _password
+	 * 登陆
+	 * @param _username 用户名
+	 * @param _password 密码
+	 * @param _serverIp 服务器IP地址
+	 * @param _serverPort 服务器端口号 
 	 * @return
 	 */
-	public boolean login(String _username, String _password){
-
+	public boolean login(String _username, String _password, String _serverIp, int _serverPort){
+		
+		//初始化connection对象
+		connection = getConnection(_serverIp, _serverPort);
+		
 		try{
 			connection.connect();
 			connection.login(_username, _password);
@@ -81,6 +86,8 @@ public class ClientConServer {
 		return false;
 		
 	}
+	
+
 	
 	/**
 	 * 退出登陆，即断开与服务器的链接

@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.id.expandableListView_FriendList);
+//		setContentView(R.id.expandableListView_FriendList);
 		Map<String,Object> map = new ClientConServer().getUserList();
 		
 		groupArr = new ArrayList<String>();

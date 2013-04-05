@@ -12,8 +12,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterGroup;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-
-import com.dutycode.chatchatmain.MainActivity;
+import org.jivesoftware.smack.packet.Presence;
 
 import android.content.Context;
 import android.util.Log;
@@ -113,7 +112,6 @@ public class ClientConServer {
 		Roster roster = connection.getRoster();
 		Collection<RosterGroup> entriesGroup = roster.getGroups(); 
 		
-		Log.i("michael", entriesGroup.size()+"");
 		
 		Map<String,List<Object>> map = new HashMap<String,List<Object>>();
 		List<Object> listGroup = new ArrayList<Object>();
@@ -125,9 +123,9 @@ public class ClientConServer {
             List<Object> groupMemb = new ArrayList<Object>();
             for (RosterEntry entry : entries) {
             	groupMemb.add(entry.getName());
-                //Presence presence = roster.getPresence(entry.getUser());   
+                Presence presence = roster.getPresence(entry.getUser());   
                 //Log.i("---", "user: "+entry.getUser());   
-                Log.i("---", "name: "+entry.getName());
+                Log.i("---", "name: "+entry.getName() + "  ----  " + presence.isAvailable());
                 //Log.i("---", "tyep: "+entry.getType());   
                 //Log.i("---", "status: "+entry.getStatus());   
                 Log.i("---", "groups: "+entry.getGroups());   
@@ -140,4 +138,39 @@ public class ClientConServer {
 		
 		return map;
 	}
+	
+	/**
+	 * 查询某用户是否在线
+	 * @param _username
+	 * @return 用户在线，返回true， 不在线，返回false
+	 */
+	public boolean isSomeOneOnline(String _username){
+		Roster roster = connection.getRoster();
+		Presence presence = roster.getPresence(_username);
+		
+		return presence.isAvailable();
+	}
+	
+	/**
+	 * 得到用户在线状态，包括以下几种：
+	 * 	1 ： available ：Available (the default) 在线
+	 * 	2： away Away. 离开
+	 * 	3： chat Chat，可以聊天
+	 * 	4： dnd ：Do not disturb，请勿打扰
+	 * 	5： xa ： Away for an extended period of time.暂时离开
+	 * @param _username
+	 * @return <b> available </b> 在线
+	 * 	<b> away</b>  离开
+	 * 	<b> chat </b> 可以聊天
+	 * 	<b> dnd </b> 请勿打扰
+	 * 	<b> xa </b>暂时离开
+	 */
+	public Presence.Mode getMode(String _username){
+		Roster roster = connection.getRoster();
+		Presence presence = roster.getPresence(_username);
+		
+		return presence.getMode();
+	}
+	
+	 
 }

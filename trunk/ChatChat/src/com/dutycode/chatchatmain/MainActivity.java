@@ -21,8 +21,9 @@ public class MainActivity extends Activity {
 
 	// 分组信息
 	private List<Object> groupArr;
-	// 组员信息
+	
 	private List<Object> childArr_S;// 中间变量，用于转换List为List<List<Object>>
+	// 组员信息
 	private List<List<Object>> childArr;
 
 	// ExpandListView控件，用户存放用户列表
@@ -73,6 +74,7 @@ public class MainActivity extends Activity {
 				text = (TextView) convertView;
 				text.setText(childArr.get(groupPosition).get(childPosition)
 						.toString());
+				
 			} else {
 				text = createView(childArr.get(groupPosition)
 						.get(childPosition).toString());

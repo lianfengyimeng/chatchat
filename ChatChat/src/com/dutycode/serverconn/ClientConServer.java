@@ -108,29 +108,31 @@ public class ClientConServer {
 	 * 得到好友列表
 	 * @return 好友列表
 	 */
-	public Map<String,Object> getUserList(){
+	public Map<String,List<Object>> getUserList(){
 		
 		Roster roster = connection.getRoster();
 		Collection<RosterGroup> entriesGroup = roster.getGroups(); 
 		
 		Log.i("michael", entriesGroup.size()+"");
 		
-		Map<String,Object> map = new HashMap<String,Object>();
+		Map<String,List<Object>> map = new HashMap<String,List<Object>>();
 		List<Object> listGroup = new ArrayList<Object>();
 		List<Object> listGroupMember = new ArrayList<Object>();
 		for(RosterGroup group: entriesGroup){  
             Collection<RosterEntry> entries = group.getEntries();  
             Log.i("---", group.getName());
             listGroup.add(group.getName());
+            List<Object> groupMemb = new ArrayList<Object>();
             for (RosterEntry entry : entries) {
-            	listGroupMember.add(entry.getName());
+            	groupMemb.add(entry.getName());
                 //Presence presence = roster.getPresence(entry.getUser());   
                 //Log.i("---", "user: "+entry.getUser());   
                 Log.i("---", "name: "+entry.getName());
                 //Log.i("---", "tyep: "+entry.getType());   
                 //Log.i("---", "status: "+entry.getStatus());   
                 Log.i("---", "groups: "+entry.getGroups());   
-            }  
+            }
+            listGroupMember.add(groupMemb);
         }
 		
 		map.put("groupName", listGroup);

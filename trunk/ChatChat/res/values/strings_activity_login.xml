@@ -3,7 +3,8 @@
     <!-- Strings related to login -->
     <string name="prompt_username">用户名</string>
     <string name="prompt_password">密码</string>
-    <string name="action_sign_in_register"><b>Sign in</b> 登录</string>
+    <string name="prompt_serverip">服务器地址</string>
+    <string name="action_sign_in_register"> 登录</string>
     <string name="action_sign_in_short">登录</string>
     <string name="menu_forgot_password">Recover lost password</string>
     <string name="login_progress_signing_in">Signing in&#8230;</string>

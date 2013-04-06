@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -12,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.dutycode.serverconn.ClientConServer;
@@ -69,17 +73,22 @@ public class MainActivity extends Activity {
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
-			TextView text = null;
+			LinearLayout ll = null;
 			if (convertView != null) {
-				text = (TextView) convertView;
+				ll = (LinearLayout) convertView;
+				TextView text = new TextView(MainActivity.this);
 				text.setText(childArr.get(groupPosition).get(childPosition)
 						.toString());
+				ll.addView(text);
 				
 			} else {
-				text = createView(childArr.get(groupPosition)
+				ll = createChildView(childArr.get(groupPosition)
 						.get(childPosition).toString());
 			}
-			return text;
+			
+			
+
+			return ll;
 		}
 
 		@Override
@@ -110,7 +119,7 @@ public class MainActivity extends Activity {
 				text = (TextView) convertView;
 				text.setText(groupArr.get(groupPosition).toString());
 			} else {
-				text = createView(groupArr.get(groupPosition).toString());
+				text = createGroupView(groupArr.get(groupPosition).toString());
 			}
 			return text;
 		}
@@ -125,7 +134,31 @@ public class MainActivity extends Activity {
 			return false;
 		}
 
-		private TextView createView(String content) {
+		/**
+		 * 子列表视图
+		 * @param _content 子列表单元名,这里为用户的账号名称
+		 * @return
+		 */
+		private LinearLayout createChildView(String _content) {
+			
+			LinearLayout ll = new LinearLayout(
+                    MainActivity.this);
+            ll.setOrientation(0);
+            
+            ImageView img = new ImageView(MainActivity.this);
+            
+            img.setPadding(50, 0, 0, 0);
+            
+          //得到用户在线状态，根据用户在线状态给出相应的图标
+			boolean isUserOnline = new ClientConServer().isSomeOneOnline(_content);
+			
+			if (isUserOnline){
+				img.setImageResource(R.drawable.online);
+			}else {
+				img.setImageResource(R.drawable.offline);
+			}
+            
+			
 			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
 					ViewGroup.LayoutParams.WRAP_CONTENT, 38);
 			TextView text = new TextView(MainActivity.this);
@@ -133,6 +166,35 @@ public class MainActivity extends Activity {
 			text.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
 			text.setPadding(40, 0, 0, 0);
 			text.setTextSize(20);
+			
+			
+			text.setText(_content);
+			
+			
+            ll.addView(img);
+            ll.addView(text);
+			return ll;
+		}
+		
+		/**
+		 * 组视图
+		 * @param content
+		 * @return
+		 */
+		private TextView createGroupView(String content) {
+			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
+					ViewGroup.LayoutParams.WRAP_CONTENT, 38);
+			TextView text = new TextView(MainActivity.this);
+			text.setLayoutParams(layoutParams);
+			text.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+			text.setPadding(40, 0, 0, 0);
+			text.setTextSize(20);
+			Resources res = getResources();
+			Drawable offline = res.getDrawable(R.drawable.offline);
+			Drawable online = res.getDrawable(R.drawable.online);
+			offline.setBounds(0, 0, offline.getMinimumWidth(), offline.getMinimumHeight());
+			online.setBounds(0, 0, online.getMinimumWidth(), online.getMinimumHeight());
+			text.setCompoundDrawables(offline, null, null, null);
 			text.setText(content);
 			return text;
 		}

@@ -76,18 +76,10 @@ public class MainActivity extends Activity {
 			LinearLayout ll = null;
 			if (convertView != null) {
 				ll = (LinearLayout) convertView;
-				TextView text = new TextView(MainActivity.this);
-				text.setText(childArr.get(groupPosition).get(childPosition)
-						.toString());
-				ll.addView(text);
-				
 			} else {
 				ll = createChildView(childArr.get(groupPosition)
 						.get(childPosition).toString());
 			}
-			
-			
-
 			return ll;
 		}
 
@@ -151,7 +143,6 @@ public class MainActivity extends Activity {
             
           //得到用户在线状态，根据用户在线状态给出相应的图标
 			boolean isUserOnline = new ClientConServer().isSomeOneOnline(_content);
-			
 			if (isUserOnline){
 				img.setImageResource(R.drawable.online);
 			}else {
@@ -160,11 +151,11 @@ public class MainActivity extends Activity {
             
 			
 			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
-					ViewGroup.LayoutParams.WRAP_CONTENT, 38);
+					ViewGroup.LayoutParams.WRAP_CONTENT, 50);
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
-			text.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-			text.setPadding(40, 0, 0, 0);
+			text.setGravity(Gravity.TOP | Gravity.LEFT);
+			text.setPadding(30, 0, 0, 5);
 			text.setTextSize(20);
 			
 			
@@ -183,18 +174,12 @@ public class MainActivity extends Activity {
 		 */
 		private TextView createGroupView(String content) {
 			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
-					ViewGroup.LayoutParams.WRAP_CONTENT, 38);
+					ViewGroup.LayoutParams.WRAP_CONTENT, 60);
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
-			text.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-			text.setPadding(40, 0, 0, 0);
+			text.setGravity(Gravity.TOP | Gravity.LEFT);
+			text.setPadding(50, 0, 0, 5);
 			text.setTextSize(20);
-			Resources res = getResources();
-			Drawable offline = res.getDrawable(R.drawable.offline);
-			Drawable online = res.getDrawable(R.drawable.online);
-			offline.setBounds(0, 0, offline.getMinimumWidth(), offline.getMinimumHeight());
-			online.setBounds(0, 0, online.getMinimumWidth(), online.getMinimumHeight());
-			text.setCompoundDrawables(offline, null, null, null);
 			text.setText(content);
 			return text;
 		}

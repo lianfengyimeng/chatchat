@@ -6,6 +6,7 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -73,6 +74,32 @@ public class MainActivity extends Activity {
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
+			TextView text = null;
+			if (convertView != null) {
+				text = (TextView) convertView;
+				text.setText(childArr.get(groupPosition).get(childPosition)
+						.toString());
+			} else {
+				text = createChildView(childArr.get(groupPosition)
+						.get(childPosition).toString());
+			}
+			
+			/**
+			 * 判断用户在线状态未完成！
+			 */
+//			System.out.println("Mode : " + new ClientConServer().getMode(childArr.get(groupPosition).get(childPosition)
+//					.toString()));
+//			//判断是否在线
+//			if (new ClientConServer().isSomeOneOnline(childArr.get(groupPosition).get(childPosition)
+//					.toString())){
+//				
+//				text.setBackgroundColor(Color.RED);
+//			}else {
+//				text.setBackgroundColor(Color.BLUE);
+//			}
+			return text;
+			/*
+			 * 下面这段代码会导致列表错乱，具体原因现在还没有找到
 			LinearLayout ll = null;
 			if (convertView != null) {
 				ll = (LinearLayout) convertView;
@@ -81,6 +108,8 @@ public class MainActivity extends Activity {
 						.get(childPosition).toString());
 			}
 			return ll;
+			*/
+			
 		}
 
 		@Override
@@ -131,7 +160,18 @@ public class MainActivity extends Activity {
 		 * @param _content 子列表单元名,这里为用户的账号名称
 		 * @return
 		 */
-		private LinearLayout createChildView(String _content) {
+		private TextView createChildView(String content) {
+			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
+					ViewGroup.LayoutParams.WRAP_CONTENT, 50);
+			TextView text = new TextView(MainActivity.this);
+			text.setLayoutParams(layoutParams);
+			text.setGravity(Gravity.TOP | Gravity.LEFT);
+			text.setPadding(40, 0, 0, 0);
+			text.setTextSize(20);
+			text.setText(content);
+			return text;
+		}
+		/*private LinearLayout createChildView(String _content) {
 			
 			LinearLayout ll = new LinearLayout(
                     MainActivity.this);
@@ -166,6 +206,7 @@ public class MainActivity extends Activity {
             ll.addView(text);
 			return ll;
 		}
+		*/
 		
 		/**
 		 * 组视图

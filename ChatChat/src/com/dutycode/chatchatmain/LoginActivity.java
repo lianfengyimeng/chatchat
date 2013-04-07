@@ -72,11 +72,16 @@ public class LoginActivity extends Activity {
 					if (loginStatus){
 						Toast.makeText(LoginActivity.this, context.getString(R.string.login_successful) , Toast.LENGTH_SHORT).show();
 						
-						/*这里将会跳转到其他的Activity	 */
+						/*跳转到主界面	 */
 						Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 						MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
+						
+						/*将登陆的Activity销毁*/
+						LoginActivity.this.finish();
+						
 						/*跳转到MainActivity*/
 						startActivity(intent);
+						
 						
 					}else {
 						Toast.makeText(LoginActivity.this, context.getString(R.string.login_fail) , Toast.LENGTH_SHORT).show();

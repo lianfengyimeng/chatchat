@@ -10,6 +10,7 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterGroup;
+import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
@@ -28,6 +29,8 @@ public class ClientConServer {
 	
 
 	private Context context;
+	
+	boolean isOnline = false;//标志，用来标示用户是否在线，初始为不在线
 	
 	private static XMPPConnection connection ; //声明XMPPconnection对象，将在login方法中进行初始化
 	
@@ -113,7 +116,7 @@ public class ClientConServer {
 		Collection<RosterGroup> entriesGroup = roster.getGroups(); 
 		
 		
-		Map<String,List<Object>> map = new HashMap<String,List<Object>>();
+		Map<String,List<Object>>  map = new HashMap<String,List<Object>>();
 		List<Object> listGroup = new ArrayList<Object>();
 		List<Object> listGroupMember = new ArrayList<Object>();
 		for(RosterGroup group: entriesGroup){  
@@ -123,9 +126,10 @@ public class ClientConServer {
             List<Object> groupMemb = new ArrayList<Object>();
             for (RosterEntry entry : entries) {
             	groupMemb.add(entry.getName());
-                Presence presence = roster.getPresence(entry.getUser());   
+//                Presence presence = roster.getPresence(entry.getUser());   
+//                System.out.println("===P:"+ presence.getPacketID() + " " + presence.getStatus());
                 //Log.i("---", "user: "+entry.getUser());   
-                Log.i("---", "name: "+entry.getName() + "  ----  " + presence.isAvailable());
+//                Log.i("---", "name: "+entry.getName() + "  ----  " + presence.isAvailable());
                 //Log.i("---", "tyep: "+entry.getType());   
                 //Log.i("---", "status: "+entry.getStatus());   
                 Log.i("---", "groups: "+entry.getGroups());   
@@ -146,9 +150,36 @@ public class ClientConServer {
 	 */
 	public boolean isSomeOneOnline(String _username){
 		Roster roster = connection.getRoster();
-		Presence presence = roster.getPresence(_username);
+//		Presence presence = roster.getPresence(_username);
 		
-		return presence.isAvailable();
+		roster.addRosterListener(new RosterListener() {
+			
+			@Override
+			public void presenceChanged(Presence presence) {
+				isOnline = presence.isAvailable();
+				
+				System.out.println("====" + isOnline);
+			}
+			
+			@Override
+			public void entriesUpdated(Collection<String> arg0) {
+				
+			}
+			
+			@Override
+			public void entriesDeleted(Collection<String> arg0) {
+				
+			}
+			
+			@Override
+			public void entriesAdded(Collection<String> arg0) {
+				
+			}
+		});
+		Presence presence = roster.getPresence(_username);
+		isOnline = presence.isAvailable();
+		System.out.println("FinalOn : " + isOnline);
+		return isOnline;
 	}
 	
 	/**

@@ -5,21 +5,21 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.dutycode.serverconn.ClientConServer;
+import com.dutycode.service.ClientConServer;
 
 public class MainActivity extends Activity {
 	public static String userloginname;
@@ -30,6 +30,8 @@ public class MainActivity extends Activity {
 	private List<Object> childArr_S;// 中间变量，用于转换List为List<List<Object>>
 	// 组员信息
 	private List<List<Object>> childArr;
+	
+	private boolean isExit; //标示是否退出程序
 
 	// ExpandListView控件，用户存放用户列表
 	private ExpandableListView ex_listview_friendlist;
@@ -57,6 +59,53 @@ public class MainActivity extends Activity {
 		ex_listview_friendlist.setAdapter(new ExpandListViewFriendListAdapter());
 
 	}
+	
+	
+	
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK){
+			exit();
+			return false;
+		}else {
+			return super.onKeyDown(keyCode, event);
+		}
+	}
+
+
+	/**
+	 * 退出程序方法
+	 */
+	private void exit(){
+		if (!isExit){
+			isExit = true;
+			Toast.makeText(getApplicationContext(), MainActivity.this.getResources().getString(R.string.exit_program_tip), 
+					Toast.LENGTH_SHORT).show();
+			mHandler.sendEmptyMessageDelayed(0, 2000);
+		}else {
+			Intent intent = new Intent(Intent.ACTION_MAIN);  
+            intent.addCategory(Intent.CATEGORY_HOME);  
+            startActivity(intent);  
+            System.exit(0);  
+		}
+	}
+	
+	/**
+	 * 处理退出消息，如果2000ms之后没有再次点击返回，将isExit置为false
+	 */
+	Handler mHandler = new Handler() {  
+		  
+        @Override  
+        public void handleMessage(Message msg) {  
+            // TODO Auto-generated method stub   
+            super.handleMessage(msg);  
+            isExit = false;  
+        }  
+  
+    };  
+
+
 
 	private class ExpandListViewFriendListAdapter extends
 			BaseExpandableListAdapter {

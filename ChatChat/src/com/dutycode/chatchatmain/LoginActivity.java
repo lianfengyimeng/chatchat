@@ -1,7 +1,5 @@
 package com.dutycode.chatchatmain;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +11,7 @@ import android.os.StrictMode;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -22,7 +21,7 @@ import android.widget.Toast;
 
 import com.dutycode.configdata.Fileconfig;
 import com.dutycode.configdata.UserXmlParseConst;
-import com.dutycode.serverconn.ClientConServer;
+import com.dutycode.service.ClientConServer;
 import com.dutycode.tool.AndroidTools;
 import com.dutycode.tool.Tools;
 import com.dutycode.tool.XMLHelper;
@@ -44,6 +43,11 @@ public class LoginActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_login);
+		
+		// 启动activity时不自动弹出软键盘   
+        getWindow().setSoftInputMode(   
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        
 		/*初始化控件*/
 		edit_username = (EditText)findViewById(R.id.login_username);
 		edit_password = (EditText)findViewById(R.id.login_password);

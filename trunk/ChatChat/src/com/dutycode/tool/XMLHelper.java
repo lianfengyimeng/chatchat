@@ -128,19 +128,6 @@ public class XMLHelper {
 		
 		//如果参数传递错误，返回null
 		return null;
-		/*
-		XmlUserInfoBean userinfo = new XmlUserInfoBean();
-		userinfo = new UserInfoHandler().getUserinfobean();
-		
-		if (_nodename.equals(UserXmlParseConst.USERNAME))
-			return userinfo.getUsername();
-		if (_nodename.equals(UserXmlParseConst.PASSWORD))
-			return userinfo.getPassword();
-		if (_nodename.equals(UserXmlParseConst.SERVER_IP))
-			return userinfo.getServerip();
-		//如果参数传递错误，返回null
-		return null;
-		*/ 
 	}
 }
 

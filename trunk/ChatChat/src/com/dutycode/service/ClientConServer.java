@@ -32,7 +32,7 @@ public class ClientConServer {
 	
 	boolean isOnline = false;//标志，用来标示用户是否在线，初始为不在线
 	
-	private static XMPPConnection connection ; //声明XMPPconnection对象，将在login方法中进行初始化
+	public static XMPPConnection connection ; //声明XMPPconnection对象，将在login方法中进行初始化
 	
 	/**
 	 * 构造方法
@@ -202,6 +202,55 @@ public class ClientConServer {
 		
 		return presence.getMode();
 	}
+	
+	/**
+	 * 根据用户名查询用户的JID信息，如b@michael-pc
+	 * @param _useremail 用户邮箱
+	 * @return 返回用户的JID
+	 */
+	public String getUserJIDByEmail(String _useremail){
+		Roster roster = connection.getRoster();
+		RosterEntry rosterentry = roster.getEntry(_useremail);
+		String userJID = rosterentry.getUser();
+		return userJID;
+	}
+	
+	/**
+	 * 根据用户名获得用户的JID <br/>
+	 * 另见：{@link #getUserEmail(String)} {@link #getUserJIDByEmail(String)}
+	 * @param _username 用户名
+	 * @return 如果存在，返回用户JID，如果不存在，返回null
+	 */
+	public String getUserJIDByName(String _username){
+		String useremail = getUserEmail(_username);
+		String userJID = null;
+		if ( useremail != null){
+			//用户存在
+			userJID = getUserJIDByEmail(useremail);
+		}
+		return userJID;
+	}
+	/**
+	 * 根据用户名获得用户的邮箱
+	 * @param _username 用户名
+	 * @return 如果存在用户，返回用户邮箱，如果不存在用户，返回null
+	 */
+	public String getUserEmail(String _username){
+		Roster roster = connection.getRoster();
+		Collection<RosterEntry> rosterentrys = roster.getEntries();
+		
+		String useremail = null;
+		for (RosterEntry rosterentry: rosterentrys){
+			if (_username.equals(rosterentry.getName())){
+				useremail = rosterentry.getUser();
+				break;
+			}
+		}
+		
+		return useremail;
+		
+	}
+	
 	
 	 
 }

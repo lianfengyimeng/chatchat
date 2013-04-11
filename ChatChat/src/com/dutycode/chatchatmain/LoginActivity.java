@@ -17,6 +17,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.dutycode.configdata.Fileconfig;
@@ -34,7 +35,7 @@ public class LoginActivity extends Activity {
 	private EditText edit_password;
 	private EditText edit_serverip;
 	private CheckBox checkbox_remberpsw;
-	
+	private LinearLayout layoutProcess;
 	private Button btn_login;
 	
 	private Context context = LoginActivity.this;
@@ -52,6 +53,8 @@ public class LoginActivity extends Activity {
 		edit_username = (EditText)findViewById(R.id.login_username);
 		edit_password = (EditText)findViewById(R.id.login_password);
 		edit_serverip = (EditText)findViewById(R.id.login_serverip);
+		
+		layoutProcess = (LinearLayout)findViewById(R.id.login_status);
 		
 		checkbox_remberpsw = (CheckBox)findViewById(R.id.checkBox_remberpsw);
 		
@@ -105,6 +108,9 @@ public class LoginActivity extends Activity {
 				}else if (!Tools.isCorrectIp(serverIp)){
 					Toast.makeText(LoginActivity.this, context.getString(R.string.login_error_serverip) , Toast.LENGTH_SHORT).show();
 				}else {
+					
+					layoutProcess.setVisibility(View.VISIBLE);
+					
 					ClientConServer ccs = new ClientConServer(LoginActivity.this);
 					boolean loginStatus = ccs.login(username, password, serverIp, serverPort);
 					if (loginStatus){
@@ -130,6 +136,7 @@ public class LoginActivity extends Activity {
 								AndroidTools.deleteFileOnSD(Fileconfig.xmlinfopath);
 							}
 						}
+						
 						/*将登陆的Activity销毁*/
 						LoginActivity.this.finish();
 						

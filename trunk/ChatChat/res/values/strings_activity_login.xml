@@ -9,7 +9,7 @@
     <string name="action_sign_in_short">登录</string>
     <string name="error_nosdcard">您的机器没有安装内存卡，不能记住密码</string>
     <string name="menu_forgot_password">Recover lost password</string>
-    <string name="login_progress_signing_in">Signing in&#8230;</string>
+    <string name="login_progress_signing_in">正在登陆，请稍后</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>

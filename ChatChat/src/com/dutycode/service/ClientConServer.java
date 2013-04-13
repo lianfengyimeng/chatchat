@@ -150,15 +150,13 @@ public class ClientConServer {
 	 */
 	public boolean isSomeOneOnline(String _username){
 		Roster roster = connection.getRoster();
-//		Presence presence = roster.getPresence(_username);
-		
+
+		String userJID = this.getUserJIDByName(_username);
 		roster.addRosterListener(new RosterListener() {
 			
 			@Override
 			public void presenceChanged(Presence presence) {
 				isOnline = presence.isAvailable();
-				
-				System.out.println("====" + isOnline);
 			}
 			
 			@Override
@@ -176,20 +174,19 @@ public class ClientConServer {
 				
 			}
 		});
-		Presence presence = roster.getPresence(_username);
+		Presence presence = roster.getPresence(userJID);
 		isOnline = presence.isAvailable();
-		System.out.println("FinalOn : " + isOnline);
 		return isOnline;
 	}
 	
 	/**
-	 * 得到用户在线状态，包括以下几种：
-	 * 	1 ： available ：Available (the default) 在线
-	 * 	2： away Away. 离开
-	 * 	3： chat Chat，可以聊天
-	 * 	4： dnd ：Do not disturb，请勿打扰
-	 * 	5： xa ： Away for an extended period of time.暂时离开
-	 * @param _username
+	 * 得到用户在线状态，包括以下几种：<br/>
+	 * 	1 ： available ：Available (the default) 在线<br/>
+	 * 	2： away Away. 离开<br/>
+	 * 	3： chat Chat，可以聊天<br/>
+	 * 	4： dnd ：Do not disturb，请勿打扰<br/>
+	 * 	5： xa ： Away for an extended period of time.暂时离开<br/>
+	 * @param _username 用户名
 	 * @return <b> available </b> 在线
 	 * 	<b> away</b>  离开
 	 * 	<b> chat </b> 可以聊天
@@ -198,7 +195,8 @@ public class ClientConServer {
 	 */
 	public Presence.Mode getMode(String _username){
 		Roster roster = connection.getRoster();
-		Presence presence = roster.getPresence(_username);
+		String userJID = this.getUserJIDByName(_username);
+		Presence presence = roster.getPresence(userJID);
 		
 		return presence.getMode();
 	}

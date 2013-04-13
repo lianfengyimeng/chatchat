@@ -63,7 +63,7 @@ public class MessageBean {
     private String messageSubject;
     private String messagePocktID;
     
-    private Date messageTime;
+    private String messageTime;
     
     public MessageBean(){}
 
@@ -107,11 +107,11 @@ public class MessageBean {
 		this.messagePocktID = messagePocktID;
 	}
 
-	public Date getMessageTime() {
+	public String getMessageTime() {
 		return messageTime;
 	}
 
-	public void setMessageTime(Date messageTime) {
+	public void setMessageTime(String messageTime) {
 		this.messageTime = messageTime;
 	}
     

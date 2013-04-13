@@ -38,6 +38,17 @@ public class LoginActivity extends Activity {
 	private LinearLayout layoutProcess;
 	private Button btn_login;
 	
+	private Thread mThread ;
+	
+	
+	private String username ;
+	private String password ;
+	private String serverIp ;
+	private int serverPort = 5222;//服务器端口号，这里默认为5222
+	
+	
+	private boolean isLoginSuccess = false;//默认登陆未成功
+	
 	private Context context = LoginActivity.this;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -96,58 +107,39 @@ public class LoginActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
+				
+				layoutProcess.setVisibility(View.VISIBLE);
 				//获取用户的登录信息，连接服务器，获取登录状态
-				String username = edit_username.getText().toString().trim();
-				String password = edit_password.getText().toString().trim();
-				String serverIp = edit_serverip.getText().toString().trim();
-				int serverPort = 5222;//服务器端口号，这里默认为5222
+				username = edit_username.getText().toString().trim();
+				password = edit_password.getText().toString().trim();
+				serverIp = edit_serverip.getText().toString().trim();
+				
 				if ("".equals(username) || "".equals(password)){
+					layoutProcess.setVisibility(View.GONE);
 					Toast.makeText(LoginActivity.this, context.getString(R.string.login_emptyname_or_emptypwd) , Toast.LENGTH_SHORT).show();
 				}else if ("".equals(serverIp)){
+					layoutProcess.setVisibility(View.GONE);
 					Toast.makeText(LoginActivity.this, context.getString(R.string.login_empty_serverip) , Toast.LENGTH_SHORT).show();
 				}else if (!Tools.isCorrectIp(serverIp)){
+					layoutProcess.setVisibility(View.GONE);
 					Toast.makeText(LoginActivity.this, context.getString(R.string.login_error_serverip) , Toast.LENGTH_SHORT).show();
 				}else {
+					//启动登陆线程
+					mThread = new Thread(loginRunable);
+					mThread.start();
 					
-					layoutProcess.setVisibility(View.VISIBLE);
-					
-					ClientConServer ccs = new ClientConServer(LoginActivity.this);
-					boolean loginStatus = ccs.login(username, password, serverIp, serverPort);
-					if (loginStatus){
-						Toast.makeText(LoginActivity.this, context.getString(R.string.login_successful) , Toast.LENGTH_SHORT).show();
-						
-						/*跳转到主界面	 */
-						Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-						MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
-						
-						/*判断是否记住密码，如果记住密码，则将信息写入xml中*/
-						if (checkbox_remberpsw.isChecked()){
-							Map<String,Object> map = new HashMap<String,Object>();
-							map.put("username", username);
-							map.put("password", password);
-							map.put("serverip", serverIp);
-							if (!AndroidTools.isFileExists(Fileconfig.xmlinfopath))
-								AndroidTools.createFileOnSD(Fileconfig.xmlfolderpath ,Fileconfig.xmlinfoname);
-							XMLHelper.createXML(map, Fileconfig.sdrootpath + Fileconfig.xmlinfopath);
-							
+					if(!mThread.isAlive()){
+						//线程执行完毕
+						if (isLoginSuccess){
+							Toast.makeText(LoginActivity.this, context.getString(R.string.login_successful) , Toast.LENGTH_SHORT).show();
 						}else {
-							//如果不点选保存密码，删除之前存在的xml文件
-							if (AndroidTools.isFileExists(Fileconfig.xmlinfopath)){
-								AndroidTools.deleteFileOnSD(Fileconfig.xmlinfopath);
-							}
+							Toast.makeText(LoginActivity.this, context.getString(R.string.login_fail) , Toast.LENGTH_SHORT).show();	
 						}
-						
-						/*将登陆的Activity销毁*/
-						LoginActivity.this.finish();
-						
-						/*跳转到MainActivity*/
-						startActivity(intent);
-						
-						
-					}else {
-						Toast.makeText(LoginActivity.this, context.getString(R.string.login_fail) , Toast.LENGTH_SHORT).show();
 					}
+					
 				}
+				
+				
 				
 			}
 		});
@@ -170,7 +162,61 @@ public class LoginActivity extends Activity {
 			}
 		});
 		
+		
 	}
+	
+	
+	
+	Runnable loginRunable = new Runnable() {
+		
+		@Override
+		public void run() {
+			//登陆子线程
+		
+				
+				layoutProcess.setVisibility(View.VISIBLE);
+				
+				ClientConServer ccs = new ClientConServer(LoginActivity.this);
+				boolean loginStatus = ccs.login(username, password, serverIp, serverPort);
+				if (loginStatus){
+					
+					isLoginSuccess = true;
+					/*跳转到主界面	 */
+					Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+					MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
+					
+					/*判断是否记住密码，如果记住密码，则将信息写入xml中*/
+					if (checkbox_remberpsw.isChecked()){
+						Map<String,Object> map = new HashMap<String,Object>();
+						map.put("username", username);
+						map.put("password", password);
+						map.put("serverip", serverIp);
+						if (!AndroidTools.isFileExists(Fileconfig.xmlinfopath))
+							AndroidTools.createFileOnSD(Fileconfig.xmlfolderpath ,Fileconfig.xmlinfoname);
+						XMLHelper.createXML(map, Fileconfig.sdrootpath + Fileconfig.xmlinfopath);
+						
+					}else {
+						//如果不点选保存密码，删除之前存在的xml文件
+						if (AndroidTools.isFileExists(Fileconfig.xmlinfopath)){
+							AndroidTools.deleteFileOnSD(Fileconfig.xmlinfopath);
+						}
+					}
+					
+					/*将登陆的Activity销毁*/
+					LoginActivity.this.finish();
+					
+					/*跳转到MainActivity*/
+					startActivity(intent);
+					
+					
+				}else {
+					isLoginSuccess = false;
+					
+				}
+			
+			
+		}
+	};
 	
 	
 }

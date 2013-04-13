@@ -9,4 +9,9 @@
     <string name="login_error_serverip">IP地址输入错误，请输入类似192.168.101.101的IP</string>
     <string name="login_successful">登录成功</string>
     <string name="login_fail">登录失败</string>
+    
+    <!-- 聊天时消息不能为空 -->
+    <string name="messagee_eror_null">消息不能为空</string>
+    <!-- 退出程序时的提示信息 -->
+    <string name="exit_program_tip">再按一次返回键退出程序</string>
 </resources>

@@ -9,6 +9,6 @@ public class MessageConfig {
 	/**
 	 * 消息的最大记录
 	 */
-	public static int MESSAGE_MAX_LENGTH = 50 ;
+	public static int MESSAGE_MAX_LENGTH = 10 ;
 	
 }

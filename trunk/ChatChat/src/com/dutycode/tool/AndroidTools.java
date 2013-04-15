@@ -6,10 +6,14 @@ import java.io.IOException;
 import com.dutycode.configdata.Fileconfig;
 
 /**
- * 关于android的一些工具类
- * 包括：
- * 	1.SD卡检测
+ * 关于android的一些工具类<br/>
+ * 包括：<br/>
+ * 	1.SD卡检测 {@link #isHasSD()}　<br/>
+ *  2.检测SD卡上文件是否存在 {@link #isFileExists(String)}<br/>
+ *  3.在SD卡上创建文件 {@link #createFileOnSD(String, String)} <br/>
+ *  4.删掉SD卡上文件 {@link #deleteFileOnSD(String)}<br/>
  * @author michael
+ * @version 1.0
  *
  */
 public class AndroidTools {
@@ -40,7 +44,8 @@ public class AndroidTools {
 	
 	/**
 	 * 在SD卡上创建文件
-	 * @param _filepath
+	 * @param _filepath 文件名称
+	 * @param _folder 文件夹名称
 	 */
 	public static void createFileOnSD(String _folder, String _filepath){
 		File file = new File(Fileconfig.sdrootpath + _folder + _filepath);

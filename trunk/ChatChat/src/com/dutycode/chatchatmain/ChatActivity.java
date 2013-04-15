@@ -1,5 +1,9 @@
 package com.dutycode.chatchatmain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.jivesoftware.smack.XMPPConnection;
 
 import android.app.Activity;
@@ -42,11 +46,18 @@ public class ChatActivity extends Activity {
 
 	private String messageContent;
 	
+	private  String[] messageListViewTitle = {"messageFrom","messageBody","messageTime"};
+	private int[] messageListViewRes = {R.id.message_from, R.id.message_body, R.id.message_time};
+	
 	private Thread mChatThred;
 	
 	private Thread mChatListenThread;//消息监听线程
 	
 	private MessageHandler messageHandler;
+	
+	//listview数据，此时为聊天数据，暂时不初始化，在OnCreate中进行初始化，目的是保持simpleadapterdata数据源唯一
+	private List<Map<String,Object>> simpleadapterdata;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -72,7 +83,6 @@ public class ChatActivity extends Activity {
 
 		listview_chatlist = (ListView) findViewById(R.id.listview_chat);
 
-		chatservice = new ChatService();
 		
 		//得到当前线程的Looper实例，由于当前线程是UI线程也可以通过Looper.getMainLooper()得到   
 		  
@@ -82,6 +92,17 @@ public class ChatActivity extends Activity {
   
         messageHandler = new MessageHandler(looper);   
 
+        chatservice = new ChatService(messageHandler);
+        
+        simpleadapterdata = chatservice.getMessageList();//初始化
+        
+		SimpleAdapter simpleadapter =  new SimpleAdapter(ChatActivity.this, simpleadapterdata, R.layout.chat_list,
+				messageListViewTitle, messageListViewRes);
+		listview_chatlist.setAdapter(simpleadapter);
+		
+		simpleadapter.notifyDataSetChanged();
+		
+		
 
 		btnSendMessage.setOnClickListener(new OnClickListener() {
 
@@ -99,30 +120,40 @@ public class ChatActivity extends Activity {
 					
 					mChatThred = new Thread(chatRunnable);
 					mChatThred.start();
-					
-					mChatListenThread = new Thread(chatListenRunnable);
-					mChatListenThread.start();
+	
 					// 将发送框设置为空
 					edittext_chatMessageContent.setText("");
-					
-
-					
-					
 				}
 			}
 		});
+		
+		//消息接入监听
+		mChatListenThread = new Thread(chatListenRunnable);
+		mChatListenThread.start();
 
 	}
 	
+	
+	@Override
+	public void onBackPressed() {
+		// 当点击返回按钮的时候,保存聊天记录
+		chatservice.onlySaveMessageFileOnExit();
+		super.onBackPressed();
+	}
+
+
+
+
+
+
+	/*聊天线程*/
 	Runnable chatRunnable = new Runnable(){
 
 		@Override
 		public void run() {
 			chatservice.sendMessage(chatTo, messageContent);
-			SimpleAdapter simpleadapter = chatservice
-												.getMessageListAdapter(ChatActivity.this);
 			Message message = Message.obtain();
-			message.obj = simpleadapter;
+			message.obj = chatservice.getMessageList();
 			
 			messageHandler.sendMessage(message);
 			
@@ -131,20 +162,13 @@ public class ChatActivity extends Activity {
 	};
 	
 	
+	/*消息监听线程*/
 	Runnable chatListenRunnable = new Runnable() {
 		
 		@Override
 		public void run() {
+			/*添加消息监听器，监听接入消息*/
 			chatservice.listenningMessage(chatTo);
-			
-			SimpleAdapter simpleadapter = chatservice
-					.getMessageListAdapter(ChatActivity.this);
-			Message message = Message.obtain();
-			message.obj = simpleadapter;
-			
-			messageHandler.sendMessage(message);
-			
-			
 		}
 	};
 	
@@ -158,12 +182,18 @@ public class ChatActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			
-			//更新UI
-			listview_chatlist.setAdapter((SimpleAdapter)msg.obj);
-			
+			//更新数据源，用于主线程刷新UI
+			simpleadapterdata = (List<Map<String,Object>>)msg.obj;
+
+			//刷新listView控件
+			listview_chatlist.invalidateViews();
+			//使最后一个被选中，目的是使最新的数据显示在界面上
+			listview_chatlist.setSelection(listview_chatlist.getBottom());
 		}
 		
 		
 	}
+	
+	
 
 }

@@ -1,5 +1,6 @@
 package com.dutycode.service;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.util.EncodingUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
@@ -234,7 +236,7 @@ public class ChatService {
 
 	/**
 	 * 得到聊天内容的List
-	 * @return
+	 * @return 聊天内容List对象
 	 */
 	public List<Map<String,Object>> getMessageList(){
 		
@@ -253,7 +255,7 @@ public class ChatService {
 
 	
 	/**
-	 * 放置内容到Adapter中,重载
+	 * 将数据发送给主线程，用于更新UI
 	 */
 	private void setAdapterList(){
 		
@@ -263,6 +265,54 @@ public class ChatService {
 		message.obj = this.getMessageList();
 		messageListenHandler.sendMessage(message);
 		
+	}
+	
+	
+	/**
+	 * 查询某天的聊天记录
+	 * @param _messageDate 日期
+	 * @param _chatWith 与谁聊天，其实是聊天记录的文件夹的名字
+	 * @return 聊天记录
+	 */
+	public String getHistoryMessageLog(String _messageDate,String _chatWith){
+		
+		String messagelog = "";
+		StringBuffer tempStr = new StringBuffer();
+		//消息存放的文件夹
+		String messageFolder = MessageConfig.MESSAGE_LOG_PATH + MainActivity.userloginname + "/" + _messageDate + "/";
+		//消息的名称
+		String messageName = _chatWith + ".chatchatfile";
+		
+		String finalMessagePath = Fileconfig.sdrootpath + messageFolder + messageName;
+		//检测是否存在文件
+		if (AndroidTools.isHasSD()){
+			if (AndroidTools.isFileExists(messageFolder + messageName)){
+				//文件存在，查询消息记录，读取文件
+				try {
+					FileInputStream fin = new FileInputStream(finalMessagePath);
+					
+					byte[] buffer = new byte[1024];
+					int c;
+					while ((c = fin.read(buffer)) != -1){
+						tempStr.append(EncodingUtils.getString(buffer, "UTF-8"));
+					}
+					fin.close();
+					messagelog = tempStr.toString();
+					
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}else {
+				//不存在文件，即没有聊天记录，返回相应提示
+				messagelog = "";//这里设置为空，应该是要设置为从string.xml中读取的，但是没有找到办法
+			}
+		}
+		return messagelog;
 	}
 	
 	/**
@@ -286,8 +336,7 @@ public class ChatService {
 			logMessage(messageBean);
 			setAdapterList();
 		}
-		
-		
+
 	}
 
 }

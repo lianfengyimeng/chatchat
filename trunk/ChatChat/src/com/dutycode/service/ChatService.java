@@ -279,9 +279,9 @@ public class ChatService {
 		String messagelog = "";
 		StringBuffer tempStr = new StringBuffer();
 		//消息存放的文件夹
-		String messageFolder = MessageConfig.MESSAGE_LOG_PATH + MainActivity.userloginname + "/" + _messageDate + "/";
+		String messageFolder = MessageConfig.MESSAGE_LOG_PATH + MainActivity.userloginname + "/" + _chatWith + "/";
 		//消息的名称
-		String messageName = _chatWith + ".chatchatfile";
+		String messageName = _messageDate + ".chatchatfile";
 		
 		String finalMessagePath = Fileconfig.sdrootpath + messageFolder + messageName;
 		//检测是否存在文件

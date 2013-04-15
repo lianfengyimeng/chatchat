@@ -3,6 +3,9 @@ package com.dutycode.tool;
 import java.io.File;
 import java.io.IOException;
 
+import android.app.Application;
+import android.content.Context;
+
 import com.dutycode.configdata.Fileconfig;
 
 /**
@@ -73,4 +76,5 @@ public class AndroidTools {
 		file.delete();
 		
 	}
+	
 }

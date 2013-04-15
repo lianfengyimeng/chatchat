@@ -12,6 +12,12 @@
     
     <!-- 聊天时消息不能为空 -->
     <string name="messagee_eror_null">消息不能为空</string>
+    
+    <!-- 查看消息记录时，不存在消息的时候的提示语 -->
+    <string name="no_message_log">没有消息记录哦~</string>
+    
+    <string name="btn_search_messsage_log">查看历史消息</string>
+    
     <!-- 退出程序时的提示信息 -->
     <string name="exit_program_tip">再按一次返回键退出程序</string>
 </resources>

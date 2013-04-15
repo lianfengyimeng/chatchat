@@ -7,6 +7,7 @@ import java.util.Map;
 import org.jivesoftware.smack.XMPPConnection;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -39,6 +40,8 @@ public class ChatActivity extends Activity {
 	private ListView listview_chatlist;
 	private EditText edittext_chatMessageContent;// 聊天内容
 	private Button btnSendMessage;
+	
+	private Button btnSearchHistoryMessage;//查询历史记录
 
 	private String chatTo;// 聊天对象
 
@@ -74,7 +77,8 @@ public class ChatActivity extends Activity {
 		edittext_chatMessageContent = (EditText) findViewById(R.id.et_sendmessage);
 
 		btnSendMessage = (Button) findViewById(R.id.btn_send);
-
+		btnSearchHistoryMessage = (Button) findViewById(R.id.right_btn);
+		
 		String topTitle = username + " Chat With " + chatTo;
 
 		/* 设置聊天界面头部信息 */
@@ -127,11 +131,29 @@ public class ChatActivity extends Activity {
 			}
 		});
 		
+		//查询历史消息按钮点击事件
+		btnSearchHistoryMessage.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Bundle bundle = new Bundle();
+				bundle.putString("chatTo", chatTo);
+				Intent intent = new Intent(ChatActivity.this,HistoryMessageActivity.class);
+				intent.putExtras(bundle);
+				startActivity(intent);
+				
+				//保存当前的聊天内容
+				chatservice.onlySaveMessageFileOnExit();
+			}
+		});
+		
 		//消息接入监听
 		mChatListenThread = new Thread(chatListenRunnable);
 		mChatListenThread.start();
 
 	}
+	
+	
 	
 	
 	@Override

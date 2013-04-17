@@ -1,13 +1,16 @@
 package com.dutycode.chatchatmain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,7 +26,9 @@ import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dutycode.service.ChatService;
 import com.dutycode.service.ClientConServer;
+import com.dutycode.service.NotificationService;
 
 public class MainActivity extends Activity {
 	public static String userloginname;
@@ -39,6 +44,16 @@ public class MainActivity extends Activity {
 
 	// ExpandListView控件，用户存放用户列表
 	private ExpandableListView ex_listview_friendlist;
+
+	// 状态栏提示管理器
+	private NotificationManager notificationmanger;
+	
+	//整体消息监听
+	private Thread totalMessageListnerThread ;
+	
+	private Map<String,Object> chatThreadMap = new HashMap<String, Object>();
+	
+	private NotificationService  notificationservice = new NotificationService();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +78,9 @@ public class MainActivity extends Activity {
 		ex_listview_friendlist
 				.setAdapter(new ExpandListViewFriendListAdapter());
 
+		// 注册notificationmanger
+		notificationmanger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
 		// 添加点击用户事件。点击用户进入到发送消息界面
 		ex_listview_friendlist
 				.setOnChildClickListener(new OnChildClickListener() {
@@ -76,9 +94,16 @@ public class MainActivity extends Activity {
 						String userJID = new ClientConServer()
 								.getUserJIDByName(username);
 
+						
 						// 用于传递参数到下一个Activity
 						Bundle bundle = new Bundle();
-						bundle.putString("userJID", userJID);
+						bundle.putString("ChatTo", userJID);
+						
+						//检测是否已经存在ChatThread
+						if (chatThreadMap.containsKey(userJID)){
+							bundle.putString("ChatThreadId", chatThreadMap.get(userJID).toString());
+						}
+						
 						Intent intent = new Intent(MainActivity.this,
 								ChatActivity.class);
 						intent.putExtras(bundle);
@@ -87,8 +112,9 @@ public class MainActivity extends Activity {
 					}
 				});
 
-		/* 添加消息监听 */
-		// new ChatService().listenningMessage();
+		//启动监听消息线程
+		totalMessageListnerThread = new Thread(totalMessageListenerRunnable);
+		totalMessageListnerThread.start();
 
 	}
 
@@ -100,6 +126,11 @@ public class MainActivity extends Activity {
 		} else {
 			return super.onKeyDown(keyCode, event);
 		}
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
 	}
 
 	/**
@@ -133,11 +164,45 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-			// TODO Auto-generated method stub
 			super.handleMessage(msg);
 			isExit = false;
 		}
 
+	};
+
+	Handler unReadMessageHandler = new Handler() {
+		
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			// 得到传递来的消息，更新状态栏消息给出提示
+			// 消息来源，消息发送者
+			Map<String,Object> map = (Map<String,Object>)msg.obj;
+			
+			// 更新状态栏，给出提示
+			notificationservice.setNotification(map, MainActivity.this, notificationmanger);
+			
+			//已经创建了chatThread
+			//TODO dsd
+			if (!chatThreadMap.containsKey(map.get("chatThreadId").toString())){
+				chatThreadMap.put(map.get("chatTo").toString(), map.get("chatThreadId").toString());
+			}
+		}
+	};
+
+	/**
+	 * 整体的消息监听
+	 */
+	Runnable totalMessageListenerRunnable = new Runnable (){
+
+		@Override
+		public void run() {
+			
+			/* 添加消息监听 */
+			new ChatService(MainActivity.this,unReadMessageHandler).listenningMessage();
+			
+		}
+		
 	};
 
 	private class ExpandListViewFriendListAdapter extends
@@ -175,13 +240,11 @@ public class MainActivity extends Activity {
 
 			// 调用setCompoundDrawables时，必须调用Drawable.setBounds()方法,否则图片不显示
 
-			img_online.setBounds(0, 0, img_online.getMinimumWidth(), img_online.getMinimumHeight());
-			img_offline.setBounds(0, 0, img_offline.getMinimumWidth(), img_offline.getMinimumHeight());
+			img_online.setBounds(0, 0, img_online.getMinimumWidth(),
+					img_online.getMinimumHeight());
+			img_offline.setBounds(0, 0, img_offline.getMinimumWidth(),
+					img_offline.getMinimumHeight());
 
-
-			/**
-			 * 判断用户在线状态未完成！
-			 */
 			// 判断是否在线
 			if (new ClientConServer().isSomeOneOnline(childArr
 					.get(groupPosition).get(childPosition).toString())) {
@@ -191,13 +254,6 @@ public class MainActivity extends Activity {
 				text.setCompoundDrawables(img_offline, null, null, null);
 			}
 			return text;
-			/*
-			 * 下面这段代码会导致列表错乱，具体原因现在还没有找到 LinearLayout ll = null; if (convertView
-			 * != null) { ll = (LinearLayout) convertView; } else { ll =
-			 * createChildView(childArr.get(groupPosition)
-			 * .get(childPosition).toString()); } return ll;
-			 */
-
 		}
 
 		@Override
@@ -262,35 +318,6 @@ public class MainActivity extends Activity {
 			text.setText(content);
 			return text;
 		}
-
-		/*
-		 * private LinearLayout createChildView(String _content) {
-		 * 
-		 * LinearLayout ll = new LinearLayout( MainActivity.this);
-		 * ll.setOrientation(0);
-		 * 
-		 * ImageView img = new ImageView(MainActivity.this);
-		 * 
-		 * img.setPadding(50, 0, 0, 0);
-		 * 
-		 * //得到用户在线状态，根据用户在线状态给出相应的图标 boolean isUserOnline = new
-		 * ClientConServer().isSomeOneOnline(_content); if (isUserOnline){
-		 * img.setImageResource(R.drawable.online); }else {
-		 * img.setImageResource(R.drawable.offline); }
-		 * 
-		 * 
-		 * AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
-		 * ViewGroup.LayoutParams.WRAP_CONTENT, 50); TextView text = new
-		 * TextView(MainActivity.this); text.setLayoutParams(layoutParams);
-		 * text.setGravity(Gravity.TOP | Gravity.LEFT); text.setPadding(30, 0,
-		 * 0, 5); text.setTextSize(20);
-		 * 
-		 * 
-		 * text.setText(_content);
-		 * 
-		 * 
-		 * ll.addView(img); ll.addView(text); return ll; }
-		 */
 
 		/**
 		 * 组视图

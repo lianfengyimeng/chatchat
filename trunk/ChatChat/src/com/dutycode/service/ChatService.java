@@ -50,9 +50,13 @@ public class ChatService {
 	private List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
 	//消息监听器
 	private NewMessageListener messagelistener = new NewMessageListener();
-	
+	//未读消息监听器
+	private MessageUnReadListenner unreadmessagelistener = new MessageUnReadListenner();
 	//消息Handler，用于和主线程UI进行交互，刷新UI数据
 	private Handler messageListenHandler;
+	
+	//全局消息句柄，用于Notification，刷新UI
+	private Handler totalMessageListenHandler;
 	
 	//chatmanger用于处理当前的聊天
 	private ChatManager chatmanger = connection.getChatManager();
@@ -70,20 +74,50 @@ public class ChatService {
 		this.messageListenHandler = _handler;
 	}
 	
+	public ChatService(Context _context, Handler _handler ){
+		this.totalMessageListenHandler = _handler;
+		Log.i("messageInfo","Activity From:" + _context.getPackageName());
+	}
+	
+	/**
+	 * 构造方法
+	 * @param _handler
+	 * @param _userJID 用户的JID，这里用作聊天线程
+	 */
+	public ChatService(Handler _handler, String _userJID){
+		this.messageListenHandler = _handler;
+		
+		if (chat == null){
+			chat = chatmanger.createChat(_userJID, messagelistener);
+		}else {
+			chat.addMessageListener(messagelistener);
+		}
+		
+			
+	}
+	
+	
+	public ChatService(Handler _handler, String _userJID, String _chatThreadID){
+		this.messageListenHandler = _handler;
+		if(chatmanger.getThreadChat(_chatThreadID) != null){
+			chat = chatmanger.getThreadChat(_chatThreadID);
+			chat.addMessageListener(messagelistener);
+		}else {
+			
+			chat = chatmanger.createChat(_userJID, messagelistener);
+		}
+		
+		
+		
+		
+	}
+	
 	/**
 	 * 发送消息（简单消息，不包括附加内容）
 	 * @param _userJID 消息接收人的账号
 	 * @param _message 发送的消息内容
 	 */
 	public void sendMessage(String _userJID, String _message){
-		String chatThreadId = _userJID;
-		
-		//判断ChatThread是否存在
-		if (chatmanger.getThreadChat(chatThreadId) != null){
-			chat = chatmanger.getThreadChat(chatThreadId);
-		}else {
-			chat = chatmanger.createChat(_userJID, chatThreadId, null);
-		}
 		
 		MessageBean messageBean = new MessageBean();
 		
@@ -106,7 +140,9 @@ public class ChatService {
 	/**
 	 * 监听指定用户JID的消息，适用于单独的聊天
 	 * @param _userJID 用户的JID，这里同时为聊天的ThreadID
+	 * @warning 方法过时
 	 */
+	@Deprecated
 	public void listenningMessage(String _userJID){
 
 		String chatThread = _userJID;
@@ -125,13 +161,18 @@ public class ChatService {
 	 * 监听所有的消息
 	 */
 	public void listenningMessage(){
-		ChatManager chatmanger = connection.getChatManager();
 		chatmanger.addChatListener(new ChatManagerListener() {
 			
 			@Override
 			public void chatCreated(Chat chat, boolean createdLocally) {
-				if (!createdLocally)
-	                chat.addMessageListener(new NewMessageListener());;
+				if (!createdLocally){
+					chat.addMessageListener(unreadmessagelistener);
+				}
+				
+				
+				
+				
+				
 			}
 		});
 	}
@@ -192,7 +233,7 @@ public class ChatService {
 		StringBuffer messagesb = new StringBuffer();
 		
 		
-		messagesb.append("---------MessageSaved at ：" + sdf.format(new Date()) + "---------\n");
+		messagesb.append("---MessageSaved at ：" + sdf.format(new Date()) + "---\n");
 		//将消息内容转换成String类型用于保存到文件中
 		for (int i = 0; i < _messageList.size(); i++){
 			messagesb.append(messageList.get(i).getMessageFrom() + "\n");
@@ -328,6 +369,9 @@ public class ChatService {
 		
 		@Override
 		public void processMessage(Chat chat, Message message) {
+			
+			
+			chat.removeMessageListener(unreadmessagelistener);
 			MessageBean messageBean = new MessageBean();
 			messageBean.setMessageBody(message.getBody());
 			messageBean.setMessageFrom(message.getFrom());
@@ -336,7 +380,31 @@ public class ChatService {
 			logMessage(messageBean);
 			setAdapterList();
 		}
+	}
+	
+	
+	/**
+	 * 全局消息监听器
+	 * @author michael
+	 *
+	 */
+	class MessageUnReadListenner implements MessageListener{
 
+		@Override
+		public void processMessage(Chat chat, Message msg) {
+			
+			/*更新UI主线程，刷新聊天列表*/			
+			android.os.Message message = android.os.Message.obtain();
+			Map<String,Object> map = new HashMap<String, Object>();
+			String chatTo = chat.getParticipant().substring(0, chat.getParticipant().indexOf("/"));
+			map.put("chatTo", chatTo);
+			map.put("chatThreadId", chat.getThreadID());
+			message.obj = map;
+
+			totalMessageListenHandler.sendMessage(message);
+			
+		}
+		
 	}
 
 }

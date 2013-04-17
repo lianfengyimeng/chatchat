@@ -72,7 +72,9 @@ public class ChatActivity extends Activity {
 		// 当前登录用户JID的信息
 		String username = connection.getUser();
 		// 聊天的对象的JID
-		chatTo = bundle.getString("userJID");
+	
+		
+		chatTo = bundle.getString("ChatTo");
 
 		edittext_chatMessageContent = (EditText) findViewById(R.id.et_sendmessage);
 
@@ -96,7 +98,14 @@ public class ChatActivity extends Activity {
   
         messageHandler = new MessageHandler(looper);   
 
-        chatservice = new ChatService(messageHandler);
+        if (bundle.size() == 2){
+        	//从状态栏传递过来的
+        	chatservice = new ChatService(messageHandler, bundle.getString("ChatTo"),bundle.getString("ChatThreadId"));
+        }else {
+        	chatservice = new ChatService(messageHandler, bundle.getString("ChatTo"));
+        }
+//        chatservice = new ChatService(messageHandler);
+        
         
         simpleadapterdata = chatservice.getMessageList();//初始化
         
@@ -148,8 +157,8 @@ public class ChatActivity extends Activity {
 		});
 		
 		//消息接入监听
-		mChatListenThread = new Thread(chatListenRunnable);
-		mChatListenThread.start();
+//		mChatListenThread = new Thread(chatListenRunnable);
+//		mChatListenThread.start();
 
 	}
 	
@@ -185,14 +194,14 @@ public class ChatActivity extends Activity {
 	
 	
 	/*消息监听线程*/
-	Runnable chatListenRunnable = new Runnable() {
-		
-		@Override
-		public void run() {
-			/*添加消息监听器，监听接入消息*/
-			chatservice.listenningMessage(chatTo);
-		}
-	};
+//	Runnable chatListenRunnable = new Runnable() {
+//		
+//		@Override
+//		public void run() {
+//			/*添加消息监听器，监听接入消息*/
+//			chatservice.listenningMessage(chatTo);
+//		}
+//	};
 	
 	
 	class MessageHandler extends Handler{

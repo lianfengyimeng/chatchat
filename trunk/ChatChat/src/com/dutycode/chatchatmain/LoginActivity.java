@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.StrictMode;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -128,15 +130,6 @@ public class LoginActivity extends Activity {
 					mThread = new Thread(loginRunable);
 					mThread.start();
 					
-					if(!mThread.isAlive()){
-						//线程执行完毕
-						if (isLoginSuccess){
-							Toast.makeText(LoginActivity.this, context.getString(R.string.login_successful) , Toast.LENGTH_SHORT).show();
-						}else {
-							Toast.makeText(LoginActivity.this, context.getString(R.string.login_fail) , Toast.LENGTH_SHORT).show();	
-						}
-					}
-					
 				}
 				
 				
@@ -166,6 +159,22 @@ public class LoginActivity extends Activity {
 	}
 	
 	
+	//登陆装填提示handler更新主线程，提示登陆状态情况
+	Handler loginStatusHandler = new Handler (){
+
+		@Override
+		public void handleMessage(Message msg) {
+			
+			boolean loginstatus = (Boolean)msg.obj;
+			if (loginstatus){
+				Toast.makeText(LoginActivity.this, context.getString(R.string.login_successful) , Toast.LENGTH_SHORT).show();
+			}else {
+				layoutProcess.setVisibility(View.INVISIBLE);
+				Toast.makeText(LoginActivity.this, context.getString(R.string.login_fail) , Toast.LENGTH_SHORT).show();	
+			}
+		}
+		
+	};
 	
 	Runnable loginRunable = new Runnable() {
 		
@@ -173,46 +182,60 @@ public class LoginActivity extends Activity {
 		public void run() {
 			//登陆子线程
 		
+			/*
+			 * 用这句话，防止出现错误：
+			 * only the original thread that created a view hierarchy can touch its views
+			 * */
+			layoutProcess.postInvalidate();	
+			
+			layoutProcess.setVisibility(View.VISIBLE);
+			
+			ClientConServer ccs = new ClientConServer(LoginActivity.this);
+			boolean loginStatus = ccs.login(username, password, serverIp, serverPort);
+			if (loginStatus){
 				
-				layoutProcess.setVisibility(View.VISIBLE);
+				isLoginSuccess = true;
+				//提示用户登陆成功，发送消息到Handler
+				android.os.Message msg = android.os.Message.obtain();
+				msg.obj = isLoginSuccess;
+				loginStatusHandler.sendMessage(msg);
 				
-				ClientConServer ccs = new ClientConServer(LoginActivity.this);
-				boolean loginStatus = ccs.login(username, password, serverIp, serverPort);
-				if (loginStatus){
-					
-					isLoginSuccess = true;
-					/*跳转到主界面	 */
-					Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-					MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
-					
-					/*判断是否记住密码，如果记住密码，则将信息写入xml中*/
-					if (checkbox_remberpsw.isChecked()){
-						Map<String,Object> map = new HashMap<String,Object>();
-						map.put("username", username);
-						map.put("password", password);
-						map.put("serverip", serverIp);
-						if (!AndroidTools.isFileExists(Fileconfig.xmlinfopath))
-							AndroidTools.createFileOnSD(Fileconfig.xmlfolderpath ,Fileconfig.xmlinfoname);
-						XMLHelper.createXML(map, Fileconfig.sdrootpath + Fileconfig.xmlinfopath);
-						
-					}else {
-						//如果不点选保存密码，删除之前存在的xml文件
-						if (AndroidTools.isFileExists(Fileconfig.xmlinfopath)){
-							AndroidTools.deleteFileOnSD(Fileconfig.xmlinfopath);
-						}
-					}
-					
-					/*将登陆的Activity销毁*/
-					LoginActivity.this.finish();
-					
-					/*跳转到MainActivity*/
-					startActivity(intent);
-					
+				/*跳转到主界面	 */
+				Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+				MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
+				
+				/*判断是否记住密码，如果记住密码，则将信息写入xml中*/
+				if (checkbox_remberpsw.isChecked()){
+					Map<String,Object> map = new HashMap<String,Object>();
+					map.put("username", username);
+					map.put("password", password);
+					map.put("serverip", serverIp);
+					if (!AndroidTools.isFileExists(Fileconfig.xmlinfopath))
+						AndroidTools.createFileOnSD(Fileconfig.xmlfolderpath ,Fileconfig.xmlinfoname);
+					XMLHelper.createXML(map, Fileconfig.sdrootpath + Fileconfig.xmlinfopath);
 					
 				}else {
-					isLoginSuccess = false;
-					
+					//如果不点选保存密码，删除之前存在的xml文件
+					if (AndroidTools.isFileExists(Fileconfig.xmlinfopath)){
+						AndroidTools.deleteFileOnSD(Fileconfig.xmlinfopath);
+					}
 				}
+				
+				/*将登陆的Activity销毁*/
+				LoginActivity.this.finish();
+				
+				/*跳转到MainActivity*/
+				startActivity(intent);
+				
+				
+			}else {
+				isLoginSuccess = false;
+				
+				android.os.Message msg = android.os.Message.obtain();
+				msg.obj = isLoginSuccess;
+				loginStatusHandler.sendMessage(msg);
+				
+			}
 			
 			
 		}

@@ -206,7 +206,10 @@ public class ChatService {
 		//聊天的记录文件名
 		String messageLogName = sdfdate.format(new Date()) + ".chatchatfile";
 		//聊天记录文件所在位置的文件夹，这里格式是这样的:chatchat/messagelog/UserName/：其中UserName为当前登录用户名
-		String messageFolder = MessageConfig.MESSAGE_LOG_PATH + MainActivity.userloginname +"/"+chat.getThreadID() +"/";
+		String userchatfullname = chat.getParticipant();
+		String userchatname = userchatfullname.contains("/")?userchatfullname.substring(0,userchatfullname.indexOf("/")):userchatfullname;
+		String messageFolder = MessageConfig.MESSAGE_LOG_PATH + MainActivity.userloginname +"/"
+								+userchatname +"/";
 		//聊天记录完整路径
 		String messageFinalLogPath = Fileconfig.sdrootpath + messageFolder + messageLogName;
 		
@@ -248,10 +251,8 @@ public class ChatService {
 			fout.write(bytes);
 			fout.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -341,10 +342,8 @@ public class ChatService {
 					messagelog = tempStr.toString();
 					
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -401,6 +400,9 @@ public class ChatService {
 			map.put("chatThreadId", chat.getThreadID());
 			message.obj = map;
 
+			//TODO 如果这里能得到当前的聊天线程，然后与未读消息线程进行比对，在进行下面的UI主线程交互，就好啦
+			//但是问题在于。由于这个监听器是在MainActivity中实例化的，这时候，chat还没有初始化，所以通过chat
+			//得不到聊天线程
 			totalMessageListenHandler.sendMessage(message);
 			
 		}

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterGroup;
@@ -16,6 +17,7 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -32,6 +34,8 @@ public class ClientConServer {
 	
 	boolean isOnline = false;//标志，用来标示用户是否在线，初始为不在线
 	
+	private Handler isConnectServerhandler ;//Handler，主要用于软件联网情况，
+	
 	public static XMPPConnection connection ; //声明XMPPconnection对象，将在login方法中进行初始化
 	
 	/**
@@ -40,6 +44,14 @@ public class ClientConServer {
 	 */
 	public ClientConServer(Context _context){
 		this.context = _context;
+	}
+	
+	/**
+	 * 构造函数，用于初始化处理与UI主线程之间的交互Handler
+	 * @param _handler
+	 */
+	public ClientConServer(Handler _handler){
+		this.isConnectServerhandler = _handler;
 	}
 
 	public ClientConServer(){}
@@ -121,18 +133,10 @@ public class ClientConServer {
 		List<Object> listGroupMember = new ArrayList<Object>();
 		for(RosterGroup group: entriesGroup){  
             Collection<RosterEntry> entries = group.getEntries();  
-            Log.i("---", group.getName());
             listGroup.add(group.getName());
             List<Object> groupMemb = new ArrayList<Object>();
             for (RosterEntry entry : entries) {
             	groupMemb.add(entry.getName());
-//                Presence presence = roster.getPresence(entry.getUser());   
-//                System.out.println("===P:"+ presence.getPacketID() + " " + presence.getStatus());
-                //Log.i("---", "user: "+entry.getUser());   
-//                Log.i("---", "name: "+entry.getName() + "  ----  " + presence.isAvailable());
-                //Log.i("---", "tyep: "+entry.getType());   
-                //Log.i("---", "status: "+entry.getStatus());   
-                Log.i("---", "groups: "+entry.getGroups());   
             }
             listGroupMember.add(groupMemb);
         }
@@ -247,6 +251,48 @@ public class ClientConServer {
 		
 		return useremail;
 		
+	}
+	
+	
+	
+	public void listeningConnectToServer(){
+		connection.addConnectionListener(new ConnectionListener() {
+			
+			@Override
+			public void reconnectionSuccessful() {
+				// TODO Auto-generated method stub
+				android.os.Message msg = android.os.Message.obtain();
+				msg.obj = true;
+				isConnectServerhandler.sendMessage(msg);
+			}
+			
+			@Override
+			public void reconnectionFailed(Exception arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void reconnectingIn(int arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void connectionClosedOnError(Exception e) {
+				// TODO Auto-generated method stub
+				android.os.Message msg = android.os.Message.obtain();
+				msg.obj = false;
+				isConnectServerhandler.sendMessage(msg);
+				
+			}
+			
+			@Override
+			public void connectionClosed() {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 	
 	

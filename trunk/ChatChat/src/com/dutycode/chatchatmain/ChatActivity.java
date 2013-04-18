@@ -47,6 +47,8 @@ public class ChatActivity extends Activity {
 
 	private ChatService chatservice;
 
+	private ClientConServer clintconnserver;
+	
 	private String messageContent;
 	
 	private  String[] messageListViewTitle = {"messageFrom","messageBody","messageTime"};
@@ -56,7 +58,12 @@ public class ChatActivity extends Activity {
 	
 	private Thread mChatListenThread;//消息监听线程
 	
+	//服务器连接监听线程
+	private Thread conncetToServerListenerThread;
+	
 	private MessageHandler messageHandler;
+	
+	private boolean isConnectOK = true;// 标示当前与服务器的连接状态,默认当前为已连接
 	
 	//listview数据，此时为聊天数据，暂时不初始化，在OnCreate中进行初始化，目的是保持simpleadapterdata数据源唯一
 	private List<Map<String,Object>> simpleadapterdata;
@@ -130,12 +137,18 @@ public class ChatActivity extends Activity {
 									R.string.messagee_eror_null),
 							Toast.LENGTH_SHORT).show();
 				} else {
+					if (isConnectOK){
+						mChatThred = new Thread(chatRunnable);
+						mChatThred.start();
+		
+						// 将发送框设置为空
+						edittext_chatMessageContent.setText("");
+					}else {
+						Toast.makeText(ChatActivity.this, 
+								ChatActivity.this.getString(R.string.lose_connect_with_server), Toast.LENGTH_SHORT)
+								.show();
+					}
 					
-					mChatThred = new Thread(chatRunnable);
-					mChatThred.start();
-	
-					// 将发送框设置为空
-					edittext_chatMessageContent.setText("");
 				}
 			}
 		});
@@ -156,6 +169,9 @@ public class ChatActivity extends Activity {
 			}
 		});
 		
+		//启动服务器状态连接监听线程
+		conncetToServerListenerThread = new Thread(connectToServeListerRunable);
+		conncetToServerListenerThread.start();
 		//消息接入监听
 //		mChatListenThread = new Thread(chatListenRunnable);
 //		mChatListenThread.start();
@@ -173,9 +189,33 @@ public class ChatActivity extends Activity {
 	}
 
 
+	/**
+	 * 服务器连接状态Handler
+	 */
+	Handler cononcetToServerHandler = new Handler (){
 
+		@Override
+		public void handleMessage(Message msg) {
+		
+			super.handleMessage(msg);
+			boolean isConnected = (Boolean)msg.obj;
+			isConnectOK = isConnected;
+		}
+		
+	};
 
+	/**
+	 * 服务器连接状态监听器
+	 */
+	Runnable connectToServeListerRunable = new Runnable(){
 
+		@Override
+		public void run() {
+			clintconnserver = new ClientConServer(cononcetToServerHandler);
+			clintconnserver.listeningConnectToServer();
+		}
+		
+	};
 
 	/*聊天线程*/
 	Runnable chatRunnable = new Runnable(){

@@ -18,6 +18,9 @@
     
     <string name="btn_search_messsage_log">查看历史消息</string>
     
+    <!-- 与服务器失去连接的时候，提示语 -->
+    <string name="lose_connect_with_server">暂时没有连接到服务器上哦，是不是您的网络不给力？</string>
+    
     <!-- 退出程序时的提示信息 -->
     <string name="exit_program_tip">再按一次返回键退出程序</string>
 </resources>

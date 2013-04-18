@@ -156,6 +156,8 @@ public class MainActivity extends Activity {
 		super.onStop();
 	}
 
+
+
 	/**
 	 * 退出程序方法
 	 */
@@ -172,6 +174,8 @@ public class MainActivity extends Activity {
 
 			// 将登陆状态改为退出登陆
 			new ClientConServer().logoff();
+			//将状态栏的消息删除掉
+			notificationmanger.cancelAll();
 			// 返回主界面
 			Intent intent = new Intent(Intent.ACTION_MAIN);
 			intent.addCategory(Intent.CATEGORY_HOME);

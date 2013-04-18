@@ -42,6 +42,8 @@ public class MainActivity extends Activity {
 
 	private boolean isExit; // 标示是否退出程序
 
+	private boolean isConnectOK = true;// 标示当前与服务器的连接状态,默认当前为已连接
+	
 	// ExpandListView控件，用户存放用户列表
 	private ExpandableListView ex_listview_friendlist;
 
@@ -50,9 +52,14 @@ public class MainActivity extends Activity {
 	
 	//整体消息监听
 	private Thread totalMessageListnerThread ;
+	//服务器连接监听线程
+	private Thread conncetToServerListenerThread;
+	
+	private ClientConServer clintconnserver ;
+	
 	
 	private Map<String,Object> chatThreadMap = new HashMap<String, Object>();
-	
+	private ExpandListViewFriendListAdapter expandlistviewfriendlistadapter =  new ExpandListViewFriendListAdapter();
 	private NotificationService  notificationservice = new NotificationService();
 
 	@Override
@@ -68,6 +75,7 @@ public class MainActivity extends Activity {
 		groupArr = map.get("groupName");
 		childArr_S = map.get("groupMember");
 
+		
 		// 将list对象转换成List<List<Object>>，用于分组查询子节点
 		for (int i = 0; i < childArr_S.size(); i++) {
 			List<Object> list = (List<Object>) childArr_S.get(i);
@@ -76,7 +84,8 @@ public class MainActivity extends Activity {
 
 		ex_listview_friendlist = (ExpandableListView) findViewById(R.id.expandableListView_FriendList);
 		ex_listview_friendlist
-				.setAdapter(new ExpandListViewFriendListAdapter());
+				.setAdapter(expandlistviewfriendlistadapter);
+		expandlistviewfriendlistadapter.notifyDataSetChanged();
 
 		// 注册notificationmanger
 		notificationmanger = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -89,34 +98,48 @@ public class MainActivity extends Activity {
 					public boolean onChildClick(ExpandableListView parent,
 							View v, int groupPosition, int childPosition,
 							long id) {
-						String username = childArr.get(groupPosition)
-								.get(childPosition).toString();
-						String userJID = new ClientConServer()
-								.getUserJIDByName(username);
+						if (isConnectOK){
+							String username = childArr.get(groupPosition)
+									.get(childPosition).toString();
+							String userJID = new ClientConServer()
+									.getUserJIDByName(username);
 
-						
-						// 用于传递参数到下一个Activity
-						Bundle bundle = new Bundle();
-						bundle.putString("ChatTo", userJID);
-						
-						//检测是否已经存在ChatThread
-						if (chatThreadMap.containsKey(userJID)){
-							bundle.putString("ChatThreadId", chatThreadMap.get(userJID).toString());
+							
+							// 用于传递参数到下一个Activity
+							Bundle bundle = new Bundle();
+							bundle.putString("ChatTo", userJID);
+							
+							//检测是否已经存在ChatThread
+							if (chatThreadMap.containsKey(userJID)){
+								bundle.putString("ChatThreadId", chatThreadMap.get(userJID).toString());
+							}
+							
+							Intent intent = new Intent(MainActivity.this,
+									ChatActivity.class);
+							intent.putExtras(bundle);
+							startActivity(intent);
+						}else {
+							Toast.makeText(MainActivity.this, 
+									MainActivity.this.getString(R.string.lose_connect_with_server), Toast.LENGTH_SHORT)
+									.show();
 						}
 						
-						Intent intent = new Intent(MainActivity.this,
-								ChatActivity.class);
-						intent.putExtras(bundle);
-						startActivity(intent);
 						return false;
 					}
 				});
 
+		//启动服务器状态连接监听线程
+		conncetToServerListenerThread = new Thread(connectToServeListerRunable);
+		conncetToServerListenerThread.start();
+		
 		//启动监听消息线程
 		totalMessageListnerThread = new Thread(totalMessageListenerRunnable);
 		totalMessageListnerThread.start();
 
+		
 	}
+	
+	
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -169,7 +192,25 @@ public class MainActivity extends Activity {
 		}
 
 	};
+	
+	/**
+	 * 服务器连接状态Handler
+	 */
+	Handler cononcetToServerHandler = new Handler (){
 
+		@Override
+		public void handleMessage(Message msg) {
+		
+			super.handleMessage(msg);
+			boolean isConnected = (Boolean)msg.obj;
+			isConnectOK = isConnected;
+		}
+		
+	};
+
+
+	
+	
 	Handler unReadMessageHandler = new Handler() {
 		
 		@Override
@@ -183,13 +224,24 @@ public class MainActivity extends Activity {
 			notificationservice.setNotification(map, MainActivity.this, notificationmanger);
 			
 			//已经创建了chatThread
-			//TODO dsd
 			if (!chatThreadMap.containsKey(map.get("chatThreadId").toString())){
 				chatThreadMap.put(map.get("chatTo").toString(), map.get("chatThreadId").toString());
 			}
 		}
 	};
 
+	/**
+	 * 服务器连接状态监听器
+	 */
+	Runnable connectToServeListerRunable = new Runnable(){
+
+		@Override
+		public void run() {
+			clintconnserver = new ClientConServer(cononcetToServerHandler);
+			clintconnserver.listeningConnectToServer();
+		}
+		
+	};
 	/**
 	 * 整体的消息监听
 	 */
@@ -244,7 +296,7 @@ public class MainActivity extends Activity {
 					img_online.getMinimumHeight());
 			img_offline.setBounds(0, 0, img_offline.getMinimumWidth(),
 					img_offline.getMinimumHeight());
-
+		
 			// 判断是否在线
 			if (new ClientConServer().isSomeOneOnline(childArr
 					.get(groupPosition).get(childPosition).toString())) {

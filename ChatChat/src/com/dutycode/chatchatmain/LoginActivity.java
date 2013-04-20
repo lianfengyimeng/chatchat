@@ -39,6 +39,7 @@ public class LoginActivity extends Activity {
 	private CheckBox checkbox_remberpsw;
 	private LinearLayout layoutProcess;
 	private Button btn_login;
+	private Button btnRegNewUser;
 	
 	private Thread mThread ;
 	
@@ -73,6 +74,8 @@ public class LoginActivity extends Activity {
 		
 		btn_login = (Button)findViewById(R.id.login_sign_in_button);
 
+		btnRegNewUser = (Button)findViewById(R.id.btn_regnewuser);
+		
 		/*防止UI冲突*/
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 			.detectDiskReads()
@@ -137,6 +140,14 @@ public class LoginActivity extends Activity {
 			}
 		});
 		
+		btnRegNewUser.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View _view) {
+				new Thread(regNewUserRunnable).start();
+				
+			}
+		});
 		
 		//设置checkbox监听事件，如果选中，则将信息写入xml中，如果未选中，则删除xml文件
 		checkbox_remberpsw.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -176,6 +187,9 @@ public class LoginActivity extends Activity {
 		
 	};
 	
+	/**
+	 * 登陆线程
+	 */
 	Runnable loginRunable = new Runnable() {
 		
 		@Override
@@ -237,6 +251,32 @@ public class LoginActivity extends Activity {
 				
 			}
 			
+			
+		}
+	};
+	
+	/**
+	 * 注册用户线程
+	 */
+	Runnable regNewUserRunnable = new Runnable() {
+		
+		@Override
+		public void run() {
+			Bundle bundle = new Bundle();
+			if ("".equals(edit_serverip.getText().toString().trim())){
+				//此时没有填写IP,将在注册用户界面填写IP
+				bundle.putBoolean("isIpExists", false);
+			}else if (!Tools.isCorrectIp(edit_serverip.getText().toString().trim())){
+				bundle.putBoolean("isIpExists", false);
+			}else {
+				bundle.putBoolean("isIpExists", true);
+				bundle.putString("serverIp", edit_serverip.getText().toString().trim());
+			}
+			
+			Intent intent = new Intent(LoginActivity.this, RegActivity.class);
+			intent.putExtras(bundle);
+			
+			startActivity(intent);
 			
 		}
 	};

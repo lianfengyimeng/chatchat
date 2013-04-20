@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
-import android.app.Notification;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -17,10 +19,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.TextView;
@@ -29,6 +35,7 @@ import android.widget.Toast;
 import com.dutycode.service.ChatService;
 import com.dutycode.service.ClientConServer;
 import com.dutycode.service.NotificationService;
+import com.dutycode.service.UserOperateService;
 
 public class MainActivity extends Activity {
 	public static String userloginname;
@@ -43,24 +50,31 @@ public class MainActivity extends Activity {
 	private boolean isExit; // 标示是否退出程序
 
 	private boolean isConnectOK = true;// 标示当前与服务器的连接状态,默认当前为已连接
-	
+
 	// ExpandListView控件，用户存放用户列表
 	private ExpandableListView ex_listview_friendlist;
+	private EditText changePswNewPsw;
+	private EditText changePswNewPswRepet;
 
 	// 状态栏提示管理器
 	private NotificationManager notificationmanger;
-	
-	//整体消息监听
-	private Thread totalMessageListnerThread ;
-	//服务器连接监听线程
+
+	// 整体消息监听
+	private Thread totalMessageListnerThread;
+	// 服务器连接监听线程
 	private Thread conncetToServerListenerThread;
-	
-	private ClientConServer clintconnserver ;
-	
-	
-	private Map<String,Object> chatThreadMap = new HashMap<String, Object>();
-	private ExpandListViewFriendListAdapter expandlistviewfriendlistadapter =  new ExpandListViewFriendListAdapter();
-	private NotificationService  notificationservice = new NotificationService();
+
+	private ClientConServer clintconnserver;
+	private UserOperateService useroperateservice;
+
+	private String newPsw;
+	private String newPswRepet;
+
+	private Context context = MainActivity.this;
+
+	private Map<String, Object> chatThreadMap = new HashMap<String, Object>();
+	private ExpandListViewFriendListAdapter expandlistviewfriendlistadapter = new ExpandListViewFriendListAdapter();
+	private NotificationService notificationservice = new NotificationService();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -75,16 +89,15 @@ public class MainActivity extends Activity {
 		groupArr = map.get("groupName");
 		childArr_S = map.get("groupMember");
 
-		
 		// 将list对象转换成List<List<Object>>，用于分组查询子节点
 		for (int i = 0; i < childArr_S.size(); i++) {
 			List<Object> list = (List<Object>) childArr_S.get(i);
 			childArr.add(list);
 		}
 
+		useroperateservice = new UserOperateService();
 		ex_listview_friendlist = (ExpandableListView) findViewById(R.id.expandableListView_FriendList);
-		ex_listview_friendlist
-				.setAdapter(expandlistviewfriendlistadapter);
+		ex_listview_friendlist.setAdapter(expandlistviewfriendlistadapter);
 		expandlistviewfriendlistadapter.notifyDataSetChanged();
 
 		// 注册notificationmanger
@@ -98,48 +111,88 @@ public class MainActivity extends Activity {
 					public boolean onChildClick(ExpandableListView parent,
 							View v, int groupPosition, int childPosition,
 							long id) {
-						if (isConnectOK){
+						if (isConnectOK) {
 							String username = childArr.get(groupPosition)
 									.get(childPosition).toString();
 							String userJID = new ClientConServer()
 									.getUserJIDByName(username);
 
-							
 							// 用于传递参数到下一个Activity
 							Bundle bundle = new Bundle();
 							bundle.putString("ChatTo", userJID);
-							
-							//检测是否已经存在ChatThread
-							if (chatThreadMap.containsKey(userJID)){
-								bundle.putString("ChatThreadId", chatThreadMap.get(userJID).toString());
+
+							// 检测是否已经存在ChatThread
+							if (chatThreadMap.containsKey(userJID)) {
+								bundle.putString("ChatThreadId", chatThreadMap
+										.get(userJID).toString());
 							}
-							
+
 							Intent intent = new Intent(MainActivity.this,
 									ChatActivity.class);
 							intent.putExtras(bundle);
 							startActivity(intent);
-						}else {
-							Toast.makeText(MainActivity.this, 
-									MainActivity.this.getString(R.string.lose_connect_with_server), Toast.LENGTH_SHORT)
-									.show();
+						} else {
+							Toast.makeText(
+									MainActivity.this,
+									MainActivity.this
+											.getString(R.string.lose_connect_with_server),
+									Toast.LENGTH_SHORT).show();
 						}
-						
+
 						return false;
 					}
 				});
 
-		//启动服务器状态连接监听线程
+		// 启动服务器状态连接监听线程
 		conncetToServerListenerThread = new Thread(connectToServeListerRunable);
 		conncetToServerListenerThread.start();
-		
-		//启动监听消息线程
+
+		// 启动监听消息线程
 		totalMessageListnerThread = new Thread(totalMessageListenerRunnable);
 		totalMessageListnerThread.start();
 
-		
 	}
-	
-	
+
+	// 创建菜单
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.add(Menu.NONE, Menu.FIRST + 1, 1,
+				context.getResources().getString(R.string.menu_change_password))
+				.setIcon(R.drawable.menu_password);
+		menu.add(Menu.NONE, Menu.FIRST + 2, 2,
+				context.getResources().getString(R.string.menu_change_status))
+				.setIcon(R.drawable.menu_settings);
+		menu.add(Menu.NONE, Menu.FIRST + 3, 3,
+				context.getResources().getString(R.string.menu_exit_program))
+				.setIcon(R.drawable.menu_logout);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// 处理菜单点击事件
+		switch (item.getItemId()) {
+		case Menu.FIRST + 1:
+			// 修改密码
+			changePasswordHandler.sendEmptyMessage(0);
+			break;
+		case Menu.FIRST + 2:
+			// TODO 修改登陆状态
+			break;
+		case Menu.FIRST + 3:
+			// 退出程序
+			notificationmanger.cancelAll();
+			// 返回主界面
+			Intent intent = new Intent(Intent.ACTION_MAIN);
+			intent.addCategory(Intent.CATEGORY_HOME);
+			startActivity(intent);
+			System.exit(0);
+			break;
+		}
+
+		return false;
+
+	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -155,8 +208,6 @@ public class MainActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 	}
-
-
 
 	/**
 	 * 退出程序方法
@@ -174,7 +225,7 @@ public class MainActivity extends Activity {
 
 			// 将登陆状态改为退出登陆
 			new ClientConServer().logoff();
-			//将状态栏的消息删除掉
+			// 将状态栏的消息删除掉
 			notificationmanger.cancelAll();
 			// 返回主界面
 			Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -196,40 +247,39 @@ public class MainActivity extends Activity {
 		}
 
 	};
-	
+
 	/**
 	 * 服务器连接状态Handler
 	 */
-	Handler cononcetToServerHandler = new Handler (){
+	Handler cononcetToServerHandler = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
-		
+
 			super.handleMessage(msg);
-			boolean isConnected = (Boolean)msg.obj;
+			boolean isConnected = (Boolean) msg.obj;
 			isConnectOK = isConnected;
 		}
-		
+
 	};
 
-
-	
-	
 	Handler unReadMessageHandler = new Handler() {
-		
+
 		@Override
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			// 得到传递来的消息，更新状态栏消息给出提示
 			// 消息来源，消息发送者
-			Map<String,Object> map = (Map<String,Object>)msg.obj;
-			
+			Map<String, Object> map = (Map<String, Object>) msg.obj;
+
 			// 更新状态栏，给出提示
-			notificationservice.setNotification(map, MainActivity.this, notificationmanger);
-			
-			//已经创建了chatThread
-			if (!chatThreadMap.containsKey(map.get("chatThreadId").toString())){
-				chatThreadMap.put(map.get("chatTo").toString(), map.get("chatThreadId").toString());
+			notificationservice.setNotification(map, MainActivity.this,
+					notificationmanger);
+
+			// 已经创建了chatThread
+			if (!chatThreadMap.containsKey(map.get("chatThreadId").toString())) {
+				chatThreadMap.put(map.get("chatTo").toString(),
+						map.get("chatThreadId").toString());
 			}
 		}
 	};
@@ -237,28 +287,146 @@ public class MainActivity extends Activity {
 	/**
 	 * 服务器连接状态监听器
 	 */
-	Runnable connectToServeListerRunable = new Runnable(){
+	Runnable connectToServeListerRunable = new Runnable() {
 
 		@Override
 		public void run() {
 			clintconnserver = new ClientConServer(cononcetToServerHandler);
 			clintconnserver.listeningConnectToServer();
 		}
-		
+
 	};
 	/**
 	 * 整体的消息监听
 	 */
-	Runnable totalMessageListenerRunnable = new Runnable (){
+	Runnable totalMessageListenerRunnable = new Runnable() {
 
 		@Override
 		public void run() {
-			
+
 			/* 添加消息监听 */
-			new ChatService(MainActivity.this,unReadMessageHandler).listenningMessage();
-			
+			new ChatService(MainActivity.this, unReadMessageHandler)
+					.listenningMessage();
+
 		}
-		
+
+	};
+
+	/**
+	 * 修改密码线程
+	 */
+	Runnable changePasswordRunnable = new Runnable() {
+
+		@Override
+		public void run() {
+			android.os.Message msg = android.os.Message.obtain();
+
+			if (useroperateservice.changePassword(newPsw)) {
+				msg.obj = true;
+			} else {
+				msg.obj = false;
+			}
+			// TODO 发送更新UI线程Handler
+			changePswResHandler.sendMessage(msg);
+		}
+
+	};
+
+	/**
+	 * 修改密码结果Handler
+	 */
+	Handler changePswResHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			boolean isChangeOk = (Boolean) msg.obj;
+			if (isChangeOk) {
+				Toast.makeText(
+						context,
+						context.getResources().getString(
+								R.string.change_psw_success),
+						Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(
+						context,
+						context.getResources().getString(
+								R.string.change_psw_fail), Toast.LENGTH_SHORT)
+						.show();
+			}
+		}
+
+	};
+	/**
+	 * 处理更改密码UI线程数据
+	 */
+	Handler changePasswordHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			LayoutInflater factory = LayoutInflater.from(MainActivity.this);
+			// 获得自定义对话框
+			View view = factory.inflate(R.layout.change_psw_layout, null);
+
+			// 在弹出的对话框中初始化控件的方法
+			changePswNewPsw = (EditText) view
+					.findViewById(R.id.change_psw_newpsw);
+			changePswNewPswRepet = (EditText) view
+					.findViewById(R.id.change_psw_newpsw_rept);
+
+			AlertDialog changePswDialog = new AlertDialog.Builder(
+					MainActivity.this)
+					.setIcon(android.R.drawable.btn_star)
+					.setTitle(
+							context.getResources().getString(
+									R.string.change_psw_title))
+					.setView(view)
+					.setPositiveButton(
+							context.getResources().getString(
+									R.string.btn_sure_change_psw),
+							new OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface arg0,
+										int arg1) {
+
+									// 初始化控件
+									// changePswNewPsw =
+									// (EditText)findViewById(R.id.change_psw_newpsw);
+									// changePswNewPswRepet =
+									// (EditText)findViewById(R.id.change_psw_newpsw_rept);
+									newPsw = changePswNewPsw.getText()
+											.toString().trim();
+									newPswRepet = changePswNewPswRepet
+											.getText().toString().trim();
+									if ("".equals(newPsw)
+											|| "".equals(newPswRepet)) {
+										Toast.makeText(
+												context,
+												context.getResources()
+														.getString(
+																R.string.change_psw_error_empty_tip),
+												Toast.LENGTH_SHORT).show();
+									} else if (!newPsw.equals(newPswRepet)) {
+										Toast.makeText(
+												context,
+												context.getResources()
+														.getString(
+																R.string.change_psw_error_not_the_same_tip),
+												Toast.LENGTH_SHORT).show();
+									} else {
+										// 启动修改密码线程
+										new Thread(changePasswordRunnable)
+												.start();
+									}
+								}
+							})
+					.setNegativeButton(
+							context.getResources().getString(
+									R.string.btn_no_change_psw), null).create();
+			changePswDialog.show();
+
+		}
+
 	};
 
 	private class ExpandListViewFriendListAdapter extends
@@ -300,7 +468,7 @@ public class MainActivity extends Activity {
 					img_online.getMinimumHeight());
 			img_offline.setBounds(0, 0, img_offline.getMinimumWidth(),
 					img_offline.getMinimumHeight());
-		
+
 			// 判断是否在线
 			if (new ClientConServer().isSomeOneOnline(childArr
 					.get(groupPosition).get(childPosition).toString())) {

@@ -1,5 +1,6 @@
 package com.dutycode.service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,8 +18,8 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 
 /**
  * 连接openfire服务器类
@@ -55,20 +56,47 @@ public class ClientConServer {
 	}
 
 	public ClientConServer(){}
-	
-	
+	/**
+	 * 构造方法，用于初始化connection,此方法主要用在注册时的初始化
+	 * @param _serverIp
+	 * @param _serverPort
+	 * @throws XMPPException 
+	 */
+	public ClientConServer(String _serverIp, int _serverPort) throws XMPPException{
+		connection = getConnection(_serverIp, _serverPort);
+		connection.connect();
+	}
 	/**
 	 * 获取连接
 	 * @param _serverIp 服务器IP地址
 	 * @param _serverPort 服务器端口
 	 * @return
 	 */
-	private XMPPConnection getConnection(String _serverIp, int _serverPort){
+	public XMPPConnection getConnection(String _serverIp, int _serverPort){
 		ConnectionConfiguration config = new ConnectionConfiguration(_serverIp, _serverPort);
-		/* 是否启用安全验证 */
-		config.setSASLAuthenticationEnabled(false);
+		
 		/*是否启用调试模式*/
 //		config.setDebuggerEnabled(true);
+//		config.setReconnectionAllowed(true);
+		config.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
+		/* 是否启用安全验证 */
+		config.setSASLAuthenticationEnabled(false);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			config.setTruststoreType("AndroidCAStore");
+			config.setTruststorePassword(null);
+			config.setTruststorePath(null);
+		}else{
+			
+			String path = System.getProperty("javax.net.ssl.trustStore");
+		    if (path == null)
+		        path = System.getProperty("java.home") + File.separator + "etc"
+		            + File.separator + "security" + File.separator
+		            + "cacerts.bks";
+			config.setTruststorePath(path);
+			config.setTruststoreType("BKS");
+		}
+		
+		
 		
 		/*创建Connection链接*/
 		XMPPConnection connection = new XMPPConnection(config);
@@ -85,6 +113,7 @@ public class ClientConServer {
 	 */
 	public boolean login(String _username, String _password, String _serverIp, int _serverPort){
 		
+		
 		//初始化connection对象
 		connection = getConnection(_serverIp, _serverPort);
 		
@@ -95,9 +124,10 @@ public class ClientConServer {
 			return true;
 		}catch (XMPPException e){
 			e.printStackTrace();
+			return false;
+			
 		}
 		
-		return false;
 		
 	}
 	

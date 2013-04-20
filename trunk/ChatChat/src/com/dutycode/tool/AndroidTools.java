@@ -17,7 +17,6 @@ import com.dutycode.configdata.Fileconfig;
  *  4.删掉SD卡上文件 {@link #deleteFileOnSD(String)}<br/>
  * @author michael
  * @version 1.0
- *
  */
 public class AndroidTools {
 

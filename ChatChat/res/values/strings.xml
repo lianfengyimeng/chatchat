@@ -9,7 +9,14 @@
     <string name="login_error_serverip">IP地址输入错误，请输入类似192.168.101.101的IP</string>
     <string name="login_successful">登录成功</string>
     <string name="login_fail">登录失败</string>
-    
+    <!-- 用户注册时，如果表单填写不完整的提示语 -->
+    <string name="reg_error_empty_form_message">信息没有填写完整哦（是不是用户名、密码或者服务器IP没有填写？）</string>
+   	<!-- 两次填写的密码不一致 -->
+   	<string name="reg_error_psw_not_same">两次密码填写不一致</string>
+   	<!-- z注册成功提示语 -->
+   	<string name="reg_success">注册成功，五秒后将返回登录界面</string>
+   	<!-- z注册失败提示语 -->
+   	<string name="reg_fail">注册失败，请稍后再试</string>
     <!-- 聊天时消息不能为空 -->
     <string name="messagee_eror_null">消息不能为空</string>
     

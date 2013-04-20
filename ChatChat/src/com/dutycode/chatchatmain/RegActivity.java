@@ -4,11 +4,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.jivesoftware.smack.XMPPException;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +19,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.dutycode.service.ClientConServer;
@@ -36,6 +40,8 @@ public class RegActivity extends Activity {
 	private Button btnRegNewUser;
 	private Button btnReturnToLogin;
 	
+	private LinearLayout progressLinner ;
+	
 	private String serverIp ;
 	private String userName;
 	private String userPassword;
@@ -44,6 +50,8 @@ public class RegActivity extends Activity {
 	private Context context = RegActivity.this;
 	
 	private UserOperateService userOperateService;
+	
+	private  final Timer returnLogintimer = new Timer();
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	@Override
@@ -61,6 +69,7 @@ public class RegActivity extends Activity {
 		btnRegNewUser = (Button)findViewById(R.id.btn_regform_regnewuser);
 		btnReturnToLogin = (Button)findViewById(R.id.btn_noreg_return_login);
 		
+		progressLinner = (LinearLayout)findViewById(R.id.reg_status_layout);
 		
 //		Bundle bundle = getIntent().getExtras();
 //		
@@ -74,6 +83,7 @@ public class RegActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
+				progressLinner.setVisibility(View.VISIBLE);
 				//对表单数据进行初始化
 				userName = editUsername.getText().toString().trim();
 				userPassword = editPassword.getText().toString().trim();
@@ -95,18 +105,31 @@ public class RegActivity extends Activity {
 				//对得到的数据进行判断，如果为空，给出提示
 				if ("".equals(userName) || "".equals(userPassword) 
 						|| "".equals(userPasswordRepet) || "".equals(serverIp)){
+					progressLinner.setVisibility(View.GONE);
 					Toast.makeText(context, context.getResources().getString(R.string.reg_error_empty_form_message),
 						Toast.LENGTH_LONG).show();
 				}else if (!Tools.isCorrectIp(serverIp)){
+					progressLinner.setVisibility(View.GONE);
 					Toast.makeText(context, context.getResources().getString(R.string.login_error_serverip),
 							Toast.LENGTH_LONG).show();
 				}else if (!userPassword.equals(userPasswordRepet)){
+					progressLinner.setVisibility(View.GONE);
 					Toast.makeText(context, context.getResources().getString(R.string.reg_error_psw_not_same),
 							Toast.LENGTH_LONG).show();
 				}else {
 					//调用注册线程
 					new Thread(regRunnable).start();
 				}
+				
+			}
+		});
+		
+		btnReturnToLogin.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View arg0) {
+				
+				new Thread(returnToLoginRunnable).start();
 				
 			}
 		});
@@ -125,23 +148,40 @@ public class RegActivity extends Activity {
 			//初始化ClientConService，用于注册connection
 			try {
 				new ClientConServer(serverIp, 5222);
+				Map<String,String> attributes = new HashMap<String, String>();
+				attributes.put("date", sdf.format(new Date()));
+				
+				//初始化userOperateService
+				userOperateService = new UserOperateService();
+				if (userOperateService.regAccount(userName, userPassword, attributes)){
+					msg.obj = true;
+				}else {
+					msg.obj = false;
+				}
 			} catch (XMPPException e) {
 				msg.obj = false;
 				e.printStackTrace();
 			}
-			Map<String,String> attributes = new HashMap<String, String>();
-			attributes.put("date", sdf.format(new Date()));
 			
-			//初始化userOperateService
-			userOperateService = new UserOperateService();
-			if (userOperateService.regAccount(userName, userPassword, attributes)){
-				msg.obj = true;
-			}else {
-				msg.obj = false;
-			}
 			regHandler.sendMessage(msg);
 		}
 		
+	};
+	
+	/**
+	 * 返回登陆界面
+	 */
+	Runnable returnToLoginRunnable = new Runnable() {
+		
+		@Override
+		public void run() {
+			
+			Intent intent = new Intent(RegActivity.this, LoginActivity.class);
+			//销毁当前Activity
+			RegActivity.this.finish();
+			startActivity(intent);
+			
+		}
 	};
 	
 	/**
@@ -155,12 +195,33 @@ public class RegActivity extends Activity {
 			if (isRegOK){
 				Toast.makeText(context, context.getResources().getString(R.string.reg_success),
 						Toast.LENGTH_SHORT).show();
+				
+				//启动定时器，两秒后返回登陆界面
+				returnLogintimer.schedule(returnToLoginTask, 5000);
+				
+				
 			}else {
+				progressLinner.setVisibility(View.GONE);
 				Toast.makeText(context, context.getResources().getString(R.string.reg_fail),
 						Toast.LENGTH_SHORT).show();
 			}
 		}
 		
+	};
+	
+	/**
+	 * 返回主界面定时任务
+	 */
+	TimerTask returnToLoginTask = new TimerTask() {
+		
+		@Override
+		public void run() {
+			//启动登陆界面
+			Intent intent = new Intent(RegActivity.this, LoginActivity.class);
+			//销毁当前Activity
+			RegActivity.this.finish();
+			startActivity(intent);
+		}
 	};
 	
 }

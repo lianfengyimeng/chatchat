@@ -30,4 +30,22 @@
     
     <!-- 退出程序时的提示信息 -->
     <string name="exit_program_tip">再按一次返回键退出程序</string>
+    
+    <!-- 这里是菜单相关的string -->
+    <string name="menu_change_password">更改密码</string>
+    <string name="menu_change_status">更改状态</string>
+    <string name="menu_exit_program">退出</string>
+    
+    
+    <!-- 修改密码界面 -->
+    <string name="change_psw_new_psw">新密码</string>
+    <string name="change_psw_new_psw_repet">重复密码</string>
+    <string name="change_psw_title">修改密码</string>
+    <string name="change_psw_error_empty_tip">新密码和重复密码不能为空</string>
+    <string name="change_psw_error_not_the_same_tip">新密码和重复密码不一致</string>
+    <string name="change_psw_fail">密码修改失败</string>
+    <string name="change_psw_success">密码修改成功</string>
+    <string name="btn_sure_change_psw">确认修改</string>
+    <string name="btn_no_change_psw">放弃修改</string>
+    
 </resources>

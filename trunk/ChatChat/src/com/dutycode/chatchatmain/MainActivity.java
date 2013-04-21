@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jivesoftware.smack.packet.Presence;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -69,6 +71,9 @@ public class MainActivity extends Activity {
 
 	private String newPsw;
 	private String newPswRepet;
+	
+	//用户状态
+	private Presence.Mode userStatusMode ;
 
 	private Context context = MainActivity.this;
 
@@ -178,6 +183,7 @@ public class MainActivity extends Activity {
 			break;
 		case Menu.FIRST + 2:
 			// TODO 修改登陆状态
+			changeStatusHandler.sendEmptyMessage(0);
 			break;
 		case Menu.FIRST + 3:
 			// 退出程序
@@ -429,6 +435,88 @@ public class MainActivity extends Activity {
 
 	};
 
+	/**
+	 * 修改用户状态Handler，
+	 */
+	Handler changeStatusHandler = new Handler(){
+
+		@Override
+		public void handleMessage(Message msg) {
+			/*
+			 * 状态：分别为：
+			 * 在线 available
+			 * 离开 away
+			 * 可以聊天 chat
+			 * 请勿打扰 dnd
+			 * 不在电脑旁 xa
+			 * */
+            String[] presenceMode ={context.getResources().getString(R.string.change_status_available),
+            		context.getResources().getString(R.string.change_status_away),
+            		context.getResources().getString(R.string.change_status_chat),
+            		context.getResources().getString(R.string.change_status_dnd),
+            		context.getResources().getString(R.string.change_status_xa)};  
+                 //包含多个选项的对话框   
+            AlertDialog dialog = new AlertDialog.Builder(context)  
+                     .setIcon(android.R.drawable.btn_star)  
+                     .setTitle(context.getResources().getString(R.string.change_status_title))  
+                     .setItems(presenceMode, onStatusSelectClick).create();  
+            dialog.show();  
+
+		}
+		
+	};
+	
+	/**
+	 * 弹出的状态栏中的点击监听事件
+	 */
+	OnClickListener onStatusSelectClick = new OnClickListener() {
+		
+		@Override
+		public void onClick(DialogInterface _dialog, int _which) {
+			switch (_which){
+			case 0:
+				//TODO 在线
+				userStatusMode = Presence.Mode.available;
+				break;
+			case 1:
+				//TODO 离开
+				userStatusMode = Presence.Mode.away;
+				break;
+			case 2:
+				//TODO chat
+				userStatusMode = Presence.Mode.chat;
+				break;
+			case 3:
+				//TODO dnd
+				userStatusMode = Presence.Mode.dnd;
+				break;
+			case 4:
+				//TODO xa
+				userStatusMode = Presence.Mode.xa;
+				break;
+			default:
+				userStatusMode =  Presence.Mode.available;
+			}
+			
+			
+			new Thread(changeStatusModeRunnable).start();
+			
+		}
+	};
+	
+	/**
+	 * 修改状态线程， 
+	 */
+	Runnable changeStatusModeRunnable = new Runnable(){
+
+		@Override
+		public void run() {
+			
+			clintconnserver.setMode(userStatusMode);
+		}
+		
+	};
+	
 	private class ExpandListViewFriendListAdapter extends
 			BaseExpandableListAdapter {
 

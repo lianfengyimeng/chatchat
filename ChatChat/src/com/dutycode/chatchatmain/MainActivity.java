@@ -24,13 +24,17 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +61,11 @@ public class MainActivity extends Activity {
 	private ExpandableListView ex_listview_friendlist;
 	private EditText changePswNewPsw;
 	private EditText changePswNewPswRepet;
+	
+	//头部信息栏控件
+	private TextView titleUserName;
+	private ImageButton titlePresenceStatusIcon;
+	private TextView titlePresenceStatusText;
 
 	// 状态栏提示管理器
 	private NotificationManager notificationmanger;
@@ -73,7 +82,7 @@ public class MainActivity extends Activity {
 	private String newPswRepet;
 	
 	//用户状态
-	private Presence.Mode userStatusMode ;
+	private Presence.Mode userStatusMode = Presence.Mode.available;//默认初始化为在线
 
 	private Context context = MainActivity.this;
 
@@ -86,6 +95,22 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.expandlistview_friendlist);
 
+//		//在这里添加处理用户状态显示的代码
+//		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.top_title_bar_layout);
+//		//获取指定layout中的控件Id，以方便实例化
+//		final LayoutInflater factory = LayoutInflater.from(MainActivity.this);     
+//        final View titleView = factory.inflate(R.layout.top_title_bar_layout,null);  
+//
+
+		//初始化控件
+		titleUserName = (TextView)findViewById(R.id.top_title_username);
+		titlePresenceStatusIcon = (ImageButton)findViewById(R.id.top_title_presence_status_ico);
+		titlePresenceStatusText = (TextView)findViewById(R.id.top_title_status);
+		
+		//显示用户状态
+		presenceStatusOnTitleBarHandler.sendEmptyMessage(0);
+		
+		
 		// 获取用户列表，放置到list中
 		Map<String, List<Object>> map = new ClientConServer().getUserList();
 		groupArr = new ArrayList<Object>();
@@ -269,6 +294,9 @@ public class MainActivity extends Activity {
 
 	};
 
+	/**
+	 * 未读消息Handler
+	 */
 	Handler unReadMessageHandler = new Handler() {
 
 		@Override
@@ -290,6 +318,70 @@ public class MainActivity extends Activity {
 		}
 	};
 
+	/**
+	 * 当前用户状态Handler
+	 */
+	Handler presenceStatusOnTitleBarHandler = new Handler (){
+
+		@Override
+		public void handleMessage(Message msg) {
+//			//TODO 在这里添加处理用户状态显示的代码
+//			getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.top_title_bar_layout);
+//			//初始化控件
+//			titleUserName = (TextView)findViewById(R.id.top_title_username);
+//			titlePresenceStatusIcon = (ImageButton)findViewById(R.id.top_title_presence_status_ico);
+//			titlePresenceStatusText = (TextView)findViewById(R.id.top_title_status);
+
+			int imgUserPresenceStatus ;
+			String statusText = "";
+			switch (userStatusMode) {
+			case available:
+				statusText = context.getResources().getString(R.string.change_status_available);
+				imgUserPresenceStatus = R.drawable.available;
+				break;
+			case away:
+				statusText = context.getResources().getString(R.string.change_status_away);
+				imgUserPresenceStatus = R.drawable.away;
+				break;
+			case chat:
+				statusText = context.getResources().getString(R.string.change_status_chat);
+				imgUserPresenceStatus = R.drawable.chat;
+				break;
+			case dnd:
+				statusText = context.getResources().getString(R.string.change_status_dnd);
+				imgUserPresenceStatus = R.drawable.dnd;
+				break;
+			case xa:
+				statusText = context.getResources().getString(R.string.change_status_xa);
+				imgUserPresenceStatus = R.drawable.xa;
+				break;
+			default:
+				statusText = context.getResources().getString(R.string.change_status_available);
+				imgUserPresenceStatus = R.drawable.available;
+				break;
+			}
+			
+			//设置界面
+			titleUserName.setText(MainActivity.userloginname);
+			titlePresenceStatusIcon.setImageResource(imgUserPresenceStatus);
+			titlePresenceStatusText.setText(statusText);
+			
+			
+			titlePresenceStatusIcon.setOnTouchListener(new OnTouchListener() {
+				
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					//处理点击事件
+					if (event.getAction() == MotionEvent.ACTION_DOWN){
+						changeStatusHandler.sendEmptyMessage(0);
+					}
+					return false;
+				}
+			});
+			
+		}
+		
+	};
 	/**
 	 * 服务器连接状态监听器
 	 */
@@ -332,7 +424,7 @@ public class MainActivity extends Activity {
 			} else {
 				msg.obj = false;
 			}
-			// TODO 发送更新UI线程Handler
+			// s 发送更新UI线程Handler
 			changePswResHandler.sendMessage(msg);
 		}
 
@@ -513,6 +605,8 @@ public class MainActivity extends Activity {
 		public void run() {
 			
 			clintconnserver.setMode(userStatusMode);
+			//重新加载新的用户状态
+			presenceStatusOnTitleBarHandler.sendEmptyMessage(0);
 		}
 		
 	};

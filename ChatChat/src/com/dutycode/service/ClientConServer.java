@@ -16,6 +16,9 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smackx.pubsub.PresenceState;
+
+import com.dutycode.chatchatmain.MainActivity;
 
 import android.content.Context;
 import android.os.Build;
@@ -233,6 +236,15 @@ public class ClientConServer {
 		Presence presence = roster.getPresence(userJID);
 		
 		return presence.getMode();
+	}
+	
+	/**
+	 * 更改用户状态
+	 * @param _mode 状态代码
+	 */
+	public void setMode(Presence.Mode _mode){
+		Presence present = new Presence(Presence.Type.available,null, 1, _mode);
+		connection.sendPacket(present);
 	}
 	
 	/**

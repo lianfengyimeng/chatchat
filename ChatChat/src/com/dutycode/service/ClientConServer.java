@@ -25,10 +25,10 @@ import android.os.Build;
 import android.os.Handler;
 
 /**
- * 连接openfire服务器类
+ * 连接openfire服务器类<br/>
  * 负责连接Openfire
  * @author Michael.Zhang
- * time: 2013-3-22 下午3:32:36
+ * <br/>Time 2013-3-22 下午3:32:36
  * 
  */
 public class ClientConServer {

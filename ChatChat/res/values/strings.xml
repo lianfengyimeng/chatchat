@@ -48,4 +48,13 @@
     <string name="btn_sure_change_psw">确认修改</string>
     <string name="btn_no_change_psw">放弃修改</string>
     
+    
+    <!-- 更改状态 -->
+    <string name="change_status_title">更改状态</string>
+    <string name="change_status_available">在线</string>
+    <string name="change_status_away">离开</string>
+    <string name="change_status_chat">可以聊天</string>
+    <string name="change_status_dnd">请勿打扰</string>
+    <string name="change_status_xa">暂时离开</string>
+    
 </resources>

@@ -3,10 +3,55 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-     <ExpandableListView 
-        android:id ="@+id/expandableListView_FriendList"   
-	    android:layout_width ="fill_parent"   
-	    android:layout_height ="wrap_content"   
-        >
-     </ExpandableListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40sp"
+        android:orientation="horizontal" >
+
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="25sp"
+            android:layout_gravity="left|center_vertical"
+            android:textIsSelectable="false" 
+            android:text="@string/welcome_tip"/>
+        <TextView
+            android:id="@+id/top_title_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5sp"
+            android:textStyle="bold"
+            android:layout_gravity="left|center_vertical"
+            android:textIsSelectable="false" />
+
+        <ImageButton
+            android:id="@+id/top_title_presence_status_ico"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10sp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/change_status_title" />
+
+        <TextView
+            android:id="@+id/top_title_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="5sp"
+            android:textIsSelectable="false" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <ExpandableListView
+            android:id="@+id/expandableListView_FriendList"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+        </ExpandableListView>
+    </LinearLayout>
+
 </LinearLayout>

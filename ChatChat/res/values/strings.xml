@@ -31,9 +31,12 @@
     <!-- 退出程序时的提示信息 -->
     <string name="exit_program_tip">再按一次返回键退出程序</string>
     
+    <!-- 登陆成功之后的顶端信息欢迎语 -->
+    <string name="welcome_tip">欢迎您：</string>
     <!-- 这里是菜单相关的string -->
     <string name="menu_change_password">更改密码</string>
     <string name="menu_change_status">更改状态</string>
+    <string name="menu_search_and_add_user">添加用户</string>
     <string name="menu_exit_program">退出</string>
     
     
@@ -56,5 +59,12 @@
     <string name="change_status_chat">可以聊天</string>
     <string name="change_status_dnd">请勿打扰</string>
     <string name="change_status_xa">暂时离开</string>
+    
+    
+    <!-- 查找用户 -->
+    <string name="search_user_username_tip">请输入用户名</string>
+    <string name="search_user_btn_text">查找</string>
+    <string name="search_user_error_empty_username">还没有输入用户名哦~</string>
+    <string name="search_user_server_error_tip">服务器错误，请稍后再试</string>
     
 </resources>

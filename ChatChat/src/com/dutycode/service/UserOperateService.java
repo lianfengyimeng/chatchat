@@ -1,11 +1,23 @@
 package com.dutycode.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.AccountManager;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.RosterGroup;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smackx.Form;
+import org.jivesoftware.smackx.ReportedData;
+import org.jivesoftware.smackx.ReportedData.Row;
+import org.jivesoftware.smackx.search.UserSearchManager;
+
+import com.dutycode.bean.UserBean;
 
 /**
  * 用户操作服务类
@@ -73,4 +85,126 @@ public class UserOperateService {
 		
 		roster.setSubscriptionMode(_mode);
 	}
+	
+	/**
+	 * 查询用户信息
+	 * @param _username 用户名
+	 * @return
+	 * @throws XMPPException 
+	 */
+	public List<UserBean> searchUser(String _username) throws XMPPException{
+		
+		List<UserBean> searchRes = new ArrayList<UserBean>();
+		UserSearchManager userSearchManger = new UserSearchManager(conncetion);
+		
+		Form searchForm = userSearchManger.getSearchForm("search." + conncetion.getServiceName());
+		
+		Form answerForm = searchForm.createAnswerForm();
+
+		answerForm.setAnswer("Username", true);  
+        answerForm.setAnswer("search", _username);  
+		
+		ReportedData resData = userSearchManger.getSearchResults(answerForm, "search." + conncetion.getServiceName());
+		
+		Iterator<Row> it = resData.getRows();
+	
+		Row row = null;
+		UserBean user = null;
+		while (it.hasNext()){
+			user = new UserBean();
+			row = it.next();
+			user.setUserName(row.getValues("Username").next().toString());
+			user.setUserJID(row.getValues("jid").next().toString());
+			user.setEmail(row.getValues("Email").next().toString());
+			user.setName(row.getValues("Name").next().toString());
+			searchRes.add(user);
+		}
+		return searchRes;
+	}
+	
+	/**
+	 * 添加分组
+	 * @param _groupname 分组名称
+	 * @return 创建成功返回true，失败返回false
+	 */
+	public boolean addGroup(String _groupname){
+		try{
+			roster.createGroup(_groupname);
+			return true;
+		}catch (Exception e){
+			e.printStackTrace();
+			return false;
+		}
+	
+	}
+	
+	/**
+	 * 获取所有分组
+	 * @return 分组列表
+	 */
+	public List<RosterGroup> getAllGroup(){
+		List<RosterGroup> grouplist = new ArrayList<RosterGroup>();  
+        Collection<RosterGroup> rosterGroup = roster.getGroups();  
+        Iterator<RosterGroup> i = rosterGroup.iterator();  
+        while (i.hasNext()) {  
+            grouplist.add(i.next());  
+        }  
+        return grouplist;  
+
+	}
+	
+	/**
+	 * 添加好友，默认添加到好友列表中
+	 * @param _friendJIDname like a@michael-pc
+	 * @param _friendNickName nickname
+	 * @return
+	 */
+	public boolean addNewFriend(String _friendJIDname, String _friendNickName){
+		try {
+			roster.createEntry(_friendJIDname, _friendNickName, null);
+			return true;
+		} catch (XMPPException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
+	 * 添加好友到组中
+	 * @param _friendJIDname
+	 * @param _friendNickName
+	 * @param _groupName
+	 * @return
+	 */
+	public boolean addNewFriend(String _friendJIDname, String _friendNickName, String _groupName){
+		try {
+			roster.createEntry(_friendJIDname, _friendNickName, new String[] {_groupName});
+			return true;
+		} catch (XMPPException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
+	 * 删除好友
+	 * @param _userName 用户名 eg: a@michae-pc
+	 * @return 删除结果 成功返回true，失败返回false
+	 */
+	public boolean deleteFriend(String _userName){
+		
+		try {
+			
+			RosterEntry rosterEntity = roster.getEntry(_userName);
+			roster.removeEntry(rosterEntity);
+			return true;
+		}catch(XMPPException e){
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	
+	
+
 }

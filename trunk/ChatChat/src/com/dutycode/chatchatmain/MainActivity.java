@@ -193,6 +193,12 @@ public class MainActivity extends Activity {
 				context.getResources().getString(R.string.menu_change_status))
 				.setIcon(R.drawable.menu_settings);
 		menu.add(Menu.NONE, Menu.FIRST + 3, 3,
+				context.getResources().getString(R.string.menu_search_and_add_user))
+				.setIcon(R.drawable.menu_search_user);
+		
+		
+		
+		menu.add(Menu.NONE, Menu.FIRST + 6, 6,
 				context.getResources().getString(R.string.menu_exit_program))
 				.setIcon(R.drawable.menu_logout);
 		return true;
@@ -211,6 +217,12 @@ public class MainActivity extends Activity {
 			changeStatusHandler.sendEmptyMessage(0);
 			break;
 		case Menu.FIRST + 3:
+			Intent searchIntent = new Intent(MainActivity.this, SearchUserActivity.class);
+			startActivity(searchIntent);
+			break;
+			
+			
+		case Menu.FIRST + 6:
 			// 退出程序
 			notificationmanger.cancelAll();
 			// 返回主界面

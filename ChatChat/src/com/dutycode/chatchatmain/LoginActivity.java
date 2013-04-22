@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.dutycode.configdata.Fileconfig;
+import com.dutycode.configdata.InfoValue;
 import com.dutycode.configdata.UserXmlParseConst;
 import com.dutycode.service.ClientConServer;
 import com.dutycode.tool.AndroidTools;
@@ -209,6 +210,11 @@ public class LoginActivity extends Activity {
 			if (loginStatus){
 				
 				isLoginSuccess = true;
+				
+				//将服务器IP地址和当前用户名存放到static变量中
+				InfoValue.loginUserName = username;
+				InfoValue.serverIp = password;
+				
 				//提示用户登陆成功，发送消息到Handler
 				android.os.Message msg = android.os.Message.obtain();
 				msg.obj = isLoginSuccess;
@@ -216,6 +222,9 @@ public class LoginActivity extends Activity {
 				
 				/*跳转到主界面	 */
 				Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+				
+				//下面这个是Demo，用于测试某些功能时使用
+//				Intent intent = new Intent(LoginActivity.this, DemoActivity.class);
 				MainActivity.userloginname = username;//将用户的帐号放置到静态变量中
 				
 				/*判断是否记住密码，如果记住密码，则将信息写入xml中*/

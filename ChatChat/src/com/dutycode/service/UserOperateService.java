@@ -146,11 +146,23 @@ public class UserOperateService {
 		List<RosterGroup> grouplist = new ArrayList<RosterGroup>();  
         Collection<RosterGroup> rosterGroup = roster.getGroups();  
         Iterator<RosterGroup> i = rosterGroup.iterator();  
-        while (i.hasNext()) {  
+        while (i.hasNext()) {
             grouplist.add(i.next());  
         }  
         return grouplist;  
 
+	}
+	/**
+	 * 得到所有分组的名字
+	 * @return
+	 */
+	public List<Object> getAllGroupName(){
+		List<RosterGroup> grouplist = this.getAllGroup();
+		List<Object> list = new ArrayList<Object>();
+		for(int i = 0; i < grouplist.size(); i++){
+			list.add(grouplist.get(i).getName());
+		}
+		return list;
 	}
 	
 	/**
@@ -178,7 +190,8 @@ public class UserOperateService {
 	 */
 	public boolean addNewFriend(String _friendJIDname, String _friendNickName, String _groupName){
 		try {
-			roster.createEntry(_friendJIDname, _friendNickName, new String[] {_groupName});
+			roster.createEntry("v@michael-pc", "v", new String[] {"好友"});
+//			roster.createEntry(_friendJIDname, _friendNickName, new String[] {_groupName});
 			return true;
 		} catch (XMPPException e) {
 			e.printStackTrace();

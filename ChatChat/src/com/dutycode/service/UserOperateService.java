@@ -30,7 +30,7 @@ import com.dutycode.bean.UserBean;
  */
 public class UserOperateService {
 	//这里不需要关注connection是否初始化，交由注册时点击按钮时初始化
-	private XMPPConnection conncetion = ClientConServer.connection;
+	private XMPPConnection conncetion = (XMPPConnection) ClientConServer.connection;
 	
 	private AccountManager accountmanger = conncetion.getAccountManager();
 	

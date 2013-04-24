@@ -41,7 +41,7 @@ import com.dutycode.tool.AndroidTools;
  */
 public class ChatService {
 
-	XMPPConnection connection = ClientConServer.connection;
+	XMPPConnection connection = (XMPPConnection) ClientConServer.connection;
 	
 	/*用户保存用户的聊天记录*/
 	private List<MessageBean> messageList = new ArrayList<MessageBean>();

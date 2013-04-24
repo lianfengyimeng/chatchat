@@ -1,12 +1,18 @@
 package com.dutycode.service;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.SocketFactory;
+
+import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
@@ -63,8 +69,9 @@ public class ClientConServer {
 
 	private Handler isConnectServerhandler;// Handler，主要用于软件联网情况，
 
-	public static XMPPConnection connection; // 声明XMPPconnection对象，将在login方法中进行初始化
+	public static Connection connection; // 声明XMPPconnection对象，将在login方法中进行初始化
 
+	public static Connection fileconnection;//文件传输连接
 	/**
 	 * 构造方法
 	 * 
@@ -88,7 +95,7 @@ public class ClientConServer {
 
 	/**
 	 * 构造方法，用于初始化connection,此方法主要用在注册时的初始化
-	 * 
+	 * x
 	 * @param _serverIp
 	 * @param _serverPort
 	 * @throws XMPPException
@@ -108,7 +115,7 @@ public class ClientConServer {
 	 *            服务器端口
 	 * @return
 	 */
-	public XMPPConnection getConnection(String _serverIp, int _serverPort) {
+	public Connection getConnection(String _serverIp, int _serverPort) {
 		//初始化配置
 		this.configure(ProviderManager.getInstance());
 		
@@ -137,9 +144,11 @@ public class ClientConServer {
 		}
 
 		/* 创建Connection链接 */
-		XMPPConnection connection = new XMPPConnection(config);
+		Connection connection = new XMPPConnection(config);
 		return connection;
 	}
+	
+	
 
 	/**
 	 * 登陆
@@ -163,7 +172,7 @@ public class ClientConServer {
 		try {
 			connection.connect();
 			connection.login(_username, _password);
-
+			
 			return true;
 		} catch (XMPPException e) {
 			e.printStackTrace();

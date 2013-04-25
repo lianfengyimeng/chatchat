@@ -39,6 +39,9 @@
     <string name="menu_search_and_add_user">添加用户</string>
     <string name="menu_exit_program">退出</string>
     
+    <!-- 聊天界面 -->
+    <string name="chat_btn_send_message">发送</string>
+    <string name="chat_text_send_message">请输入聊天内容</string>
     
     <!-- 修改密码界面 -->
     <string name="change_psw_new_psw">新密码</string>
@@ -74,5 +77,17 @@
     <string name="search_user_add_user_error_friendname_is_empty">出现错误啦，用户名为空</string>
     <string name="search_user_add_user_fail">添加好友失败</string>
     <string name="search_user_add_user_succes">添加好友成功</string>
+    
+    
+    <!-- 传文件 -->
+    <string name="file_send_file_title">发送文件</string>
+    <string name="file_btn_send_file">传文件</string>
+    <string name="file_sendfile_tip">请点击选择文件按钮选择文件</string>
+    <string name="file_btn_select_file">选择文件</string>
+    <string name="file_btn_send_file_final">发送文件</string>
+    <string name="file_btn_send_file_cancel">取消</string>
+    <string name="file_send_request_other_acept">正在等待对方接受</string>
+    <string name="file_send_success">完成</string>
+    <string name="file_send_in_progress">正在传输，请稍等</string>
     
 </resources>

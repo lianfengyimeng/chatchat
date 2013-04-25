@@ -8,18 +8,24 @@
         android:id="@+id/datepicker_messagedate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:calendarViewShown="false" ></DatePicker>
-    
-    <Button 
+        android:calendarViewShown="false" >
+    </DatePicker>
+
+    <Button
         android:id="@+id/btn_search_messagelog"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_search_messsage_log"/>
+        android:background="@drawable/btn_bg"
+        android:gravity="center"
+        android:text="@string/btn_search_messsage_log"
+        android:textColor="#FFF"
+        android:textStyle="bold" />
+
     <TextView
         android:id="@+id/textview_messagelog"
-        android:textIsSelectable="false"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical"
+        android:textIsSelectable="false" />
 
 </LinearLayout>

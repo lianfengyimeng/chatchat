@@ -9,6 +9,7 @@ import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -54,6 +55,8 @@ public class ChatActivity extends Activity {
 	// 发送文件Dialog界面控件
 	private EditText editSendFilePath;
 	private Button btnSelectFile;
+
+	private ProgressDialog mypDialog;;
 
 	private String chatTo;// 聊天对象
 	private String filePath;
@@ -178,6 +181,8 @@ public class ChatActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 
+				// 初始化mypDialog
+				mypDialog = new ProgressDialog(ChatActivity.this);
 				sendFileHandler.sendEmptyMessage(0);
 			}
 		});
@@ -245,8 +250,9 @@ public class ChatActivity extends Activity {
 								@Override
 								public void onClick(DialogInterface arg0,
 										int arg1) {
-									//TODO
-									filePath = editSendFilePath.getText().toString().trim();
+									// TODO
+									filePath = editSendFilePath.getText()
+											.toString().trim();
 									new Thread(sendFileRunnable).start();
 
 								}
@@ -303,38 +309,107 @@ public class ChatActivity extends Activity {
 		}
 
 	};
-	
+
 	/**
 	 * 发送文件线程
 	 */
-	Runnable sendFileRunnable = new Runnable(){
+	Runnable sendFileRunnable = new Runnable() {
 
 		@Override
 		public void run() {
 			// TODO 发送文件线程
-			//这里只是用于测试
+			// 这里只是用于测试
 			filePath = Fileconfig.sdrootpath + "a.jpg";
 			FileTransferOperateService filet = new FileTransferOperateService();
-			OutgoingFileTransfer transfer = filet.sendFile(chatTo, filePath, "Send By ChatChat");
-			
-			
-			while (!transfer.isDone()){
-				if(transfer.getStatus().equals(Status.error)) {
-	                  System.out.println("ERROR!!! " + transfer.getError());
-	            } else {
-	                  System.out.println(transfer.getStatus());
-	                  System.out.println(transfer.getProgress());
-	            }
-	            try {
+			OutgoingFileTransfer transfer = filet.sendFile(chatTo, filePath,
+					"Send By ChatChat");
+			android.os.Message msg = android.os.Message.obtain();
+
+			// if (transfer.getStatus() == Status.negotiating_transfer){
+			// msg.obj =
+			// context.getResources().getString(R.string.file_send_request_other_acept);
+			// sendFileProgressHandler.sendMessage(msg);
+			// }
+			// if (transfer.getStatus() == Status.negotiating_transfer ||
+			// transfer.getStatus() == Status.in_progress) {
+			msg.obj = context.getResources().getString(
+					R.string.file_send_in_progress);
+			sendFileProgressHandler.sendMessage(msg);
+			// }
+			while (!transfer.isDone()) {
+
+				// msg.obj =
+				// context.getResources().getString(R.string.file_send_in_progress);
+				// sendFileProgressHandler.sendMessage(msg);
+
+				if (transfer.getStatus().equals(Status.error)) {
+					System.out.println("ERROR!!! " + transfer.getError());
+				} else {
+					System.out.println(transfer.getStatus());
+					System.out.println(transfer.getProgress());
+
+				}
+				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}	
+				}
 			}
-		}
-		
-	};	
+			if (transfer.isDone()) {
+				System.out.println("Done!");
+				msg.obj = context.getResources().getString(
+						R.string.file_send_success);
+				sendFileProgressHandler.sendMessage(msg);
+			}
+
+		};
+
+		/**
+		 * 处理进度条显示Handler
+		 */
+		Handler sendFileProgressHandler = new Handler() {
+
+			@Override
+			public void handleMessage(Message msg) {
+				String message = (String) msg.obj;
+
+				// 设置进度条风格，风格为圆形，旋转的
+				mypDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				// 设置ProgressDialog 标题
+				mypDialog.setTitle("Google");
+				// 设置ProgressDialog 提示信息
+				mypDialog.setMessage(message);
+				// 设置ProgressDialog 标题图标
+				mypDialog.setIcon(R.drawable.chatchat);
+
+				// mypDialog.setButton("Google",this);
+				// 设置ProgressDialog 的一个Button
+				// 设置ProgressDialog 的进度条是否不明确
+				mypDialog.setIndeterminate(false);
+				// 设置ProgressDialog 是否可以按退回按键取消
+				mypDialog.setCancelable(true);
+				// 让ProgressDialog显示
+
+				if (message.equals(context.getResources().getString(
+						R.string.file_send_in_progress))) {
+					mypDialog.show();
+				}
+
+				if (message.equals(context.getResources().getString(
+						R.string.file_send_success))) {
+					Toast.makeText(
+							context,
+							context.getResources().getString(
+									R.string.file_send_success),
+							Toast.LENGTH_SHORT).show();
+					mypDialog.dismiss();
+
+				}
+			}
+		};
+
+	};
 
 	/* 消息监听线程 */
 	// Runnable chatListenRunnable = new Runnable() {

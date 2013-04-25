@@ -20,6 +20,7 @@ import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -92,6 +93,7 @@ public class ChatActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_chat);
 		// 得到connection对象
 		connection = (XMPPConnection) ClientConServer.connection;
@@ -110,9 +112,11 @@ public class ChatActivity extends Activity {
 
 		String topTitle = username + " Chat With " + chatTo;
 
+		String chatWith = topTitle.contains("@")?topTitle.substring(0, topTitle.indexOf("@")):topTitle;
 		/* 设置聊天界面头部信息 */
 		textviewChatWith = (TextView) findViewById(R.id.chatwith);
-		textviewChatWith.setText(topTitle);
+		
+		textviewChatWith.setText(chatWith + "    ");
 
 		listview_chatlist = (ListView) findViewById(R.id.listview_chat);
 

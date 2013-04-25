@@ -34,19 +34,31 @@
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent" 
+        android:background="@drawable/bg">
 
+        
+       
         <LinearLayout
             style="@style/LoginFormContainer"
             android:orientation="vertical" >
 
+            <ImageView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/logo"
+            android:layout_gravity="center"
+            android:contentDescription="@string/app_name"/>
+            
             <EditText
                 android:id="@+id/login_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_username"
+                android:layout_marginTop="5sp"
                 android:maxLines="1"
-                android:singleLine="true" />
+                android:singleLine="true" 
+                android:background="@drawable/edittext_bg"/>
 
             <EditText
                 android:id="@+id/login_password"
@@ -55,7 +67,9 @@
                 android:hint="@string/prompt_password"
                 android:inputType="textPassword"
                 android:maxLines="1"
-                android:singleLine="true" />
+                android:singleLine="true" 
+                android:layout_marginTop="5sp"
+                android:background="@drawable/edittext_bg"/>
             
             <EditText
                 android:id="@+id/login_serverip"
@@ -63,7 +77,9 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_serverip"
                 android:maxLines="1"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:layout_marginTop="5sp"
+                android:background="@drawable/edittext_bg" />
 
             <CheckBox
                 android:id="@+id/checkBox_remberpsw"
@@ -73,6 +89,8 @@
                 android:layout_marginTop="16dp"
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
+                android:textColor="#FFF"
+                android:textStyle="bold"
                 android:text="@string/prompt_remberpsw" />
             
             <Button
@@ -83,6 +101,10 @@
                 android:layout_marginTop="16dp"
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
+                android:textColor="#FFF"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:background="@drawable/btn_bg"
                 android:text="@string/action_sign_in_register" />
             <Button 
                 android:id="@+id/btn_regnewuser"
@@ -92,6 +114,10 @@
                 android:layout_marginTop="16dp"
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
+                android:textColor="#FFF"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:background="@drawable/btn_bg"
                 android:text="@string/action_register_newuser"/>
 
         </LinearLayout>

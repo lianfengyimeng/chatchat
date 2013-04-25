@@ -7,12 +7,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40sp"
-        android:orientation="horizontal" >
+        android:orientation="horizontal" 
+        android:background="@drawable/chat_main_top">
 
         <TextView 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="25sp"
+            android:layout_marginLeft="85sp"
             android:layout_gravity="left|center_vertical"
             android:textIsSelectable="false" 
             android:text="@string/welcome_tip"/>
@@ -22,6 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5sp"
             android:textStyle="bold"
+            android:textColor="#fff"
             android:layout_gravity="left|center_vertical"
             android:textIsSelectable="false" />
 
@@ -30,6 +32,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10sp"
+            android:background="@drawable/chat_main_top_imgbtn_bg"
+            android:src="@drawable/chat_main_top_imgbtn_bg"
             android:layout_gravity="center_horizontal"
             android:contentDescription="@string/change_status_title" />
 

@@ -9,6 +9,7 @@
         android:targetSdkVersion="17" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_USER_DICTIONARY"/>
 
     <application
         android:allowBackup="true"
@@ -40,6 +41,33 @@
         </activity>
         <activity
             android:name="com.dutycode.chatchatmain.HistoryMessageActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+            
+        </activity>
+        <activity
+            android:name="com.dutycode.chatchatmain.RegActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+            
+        </activity>
+        <activity
+            android:name="com.dutycode.chatchatmain.SearchUserActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+            
+        </activity>
+        
+        
+        
+        
+        
+        
+        
+        
+        <!-- 测试Demo -->
+        <activity
+            android:name="com.dutycode.chatchatmain.DemoActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize|stateVisible" >
             

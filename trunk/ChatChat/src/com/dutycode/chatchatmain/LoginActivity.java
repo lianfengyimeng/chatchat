@@ -113,7 +113,8 @@ public class LoginActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				
+				//设置点击背景
+				btn_login.setBackgroundResource(R.drawable.btn_click);
 				layoutProcess.setVisibility(View.VISIBLE);
 				//获取用户的登录信息，连接服务器，获取登录状态
 				username = edit_username.getText().toString().trim();
@@ -145,6 +146,7 @@ public class LoginActivity extends Activity {
 			
 			@Override
 			public void onClick(View _view) {
+				btnRegNewUser.setBackgroundResource(R.drawable.btn_click);
 				new Thread(regNewUserRunnable).start();
 				
 			}

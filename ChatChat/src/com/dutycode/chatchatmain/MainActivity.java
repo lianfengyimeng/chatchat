@@ -28,6 +28,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
@@ -93,6 +94,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.expandlistview_friendlist);
 
 //		//在这里添加处理用户状态显示的代码
@@ -727,9 +729,11 @@ public class MainActivity extends Activity {
 		 */
 		private TextView createChildView(String content) {
 			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
-					ViewGroup.LayoutParams.WRAP_CONTENT, 80);
+					ViewGroup.LayoutParams.MATCH_PARENT, 80);
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
+//			text.setWidth(LayoutParams.MATCH_PARENT);
+			text.setBackgroundResource(R.drawable.chat_list_child_list);
 			text.setGravity(Gravity.TOP | Gravity.LEFT);
 			text.setPadding(40, 0, 0, 0);
 			text.setTextSize(20);
@@ -745,9 +749,11 @@ public class MainActivity extends Activity {
 		 */
 		private TextView createGroupView(String content) {
 			AbsListView.LayoutParams layoutParams = new AbsListView.LayoutParams(
-					ViewGroup.LayoutParams.WRAP_CONTENT, 60);
+					ViewGroup.LayoutParams.MATCH_PARENT, 60);
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
+			text.setBackgroundResource(R.drawable.chat_list_group_list);
+//			text.setWidth(LayoutParams.MATCH_PARENT);
 			text.setGravity(Gravity.TOP | Gravity.LEFT);
 			text.setPadding(50, 0, 0, 5);
 			text.setTextSize(20);

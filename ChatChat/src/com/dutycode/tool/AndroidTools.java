@@ -65,6 +65,17 @@ public class AndroidTools {
 	}
 	
 	/**
+	 * 在SD卡上创建文件夹
+	 * @param _folders
+	 */
+	public static void createFoldersOnSD(String _folders){
+		File filefoder = new File(Fileconfig.sdrootpath + _folders);
+		if (!filefoder.exists()){
+			filefoder.mkdirs();
+		}
+	}
+	
+	/**
 	 * 删除SD卡上文件
 	 * @param _filepath 文件路径
 	 */

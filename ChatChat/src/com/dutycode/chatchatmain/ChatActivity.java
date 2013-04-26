@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smackx.filetransfer.FileTransfer.Status;
+import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
 import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 
 import android.app.Activity;
@@ -28,6 +29,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dutycode.bean.ReturnCodeBean;
 import com.dutycode.configdata.Fileconfig;
 import com.dutycode.service.ChatService;
 import com.dutycode.service.ClientConServer;
@@ -65,6 +67,8 @@ public class ChatActivity extends Activity {
 	private ChatService chatservice;
 
 	private ClientConServer clintconnserver;
+
+	private FileTransferOperateService filetransferservice;
 
 	private String messageContent;
 
@@ -112,14 +116,16 @@ public class ChatActivity extends Activity {
 
 		String topTitle = username + " Chat With " + chatTo;
 
-		String chatWith = topTitle.contains("@")?topTitle.substring(0, topTitle.indexOf("@")):topTitle;
+		String chatWith = topTitle.contains("@") ? topTitle.substring(0,
+				topTitle.indexOf("@")) : topTitle;
 		/* 设置聊天界面头部信息 */
 		textviewChatWith = (TextView) findViewById(R.id.chatwith);
-		
+
 		textviewChatWith.setText(chatWith + "    ");
 
 		listview_chatlist = (ListView) findViewById(R.id.listview_chat);
 
+		filetransferservice = new FileTransferOperateService();
 		// 得到当前线程的Looper实例，由于当前线程是UI线程也可以通过Looper.getMainLooper()得到
 
 		Looper looper = Looper.myLooper();
@@ -214,6 +220,9 @@ public class ChatActivity extends Activity {
 		// 消息接入监听
 		// mChatListenThread = new Thread(chatListenRunnable);
 		// mChatListenThread.start();
+
+		// 文件服务监听
+		new Thread(fileTansferListenRunnable).start();
 
 	}
 
@@ -324,9 +333,10 @@ public class ChatActivity extends Activity {
 			// TODO 发送文件线程
 			// 这里只是用于测试
 			filePath = Fileconfig.sdrootpath + "a.jpg";
-			FileTransferOperateService filet = new FileTransferOperateService();
-			OutgoingFileTransfer transfer = filet.sendFile(chatTo, filePath,
-					"Send By ChatChat");
+			// FileTransferOperateService filet = new
+			// FileTransferOperateService();
+			OutgoingFileTransfer transfer = filetransferservice.sendFile(
+					chatTo, filePath, "Send By ChatChat");
 			android.os.Message msg = android.os.Message.obtain();
 
 			// if (transfer.getStatus() == Status.negotiating_transfer){
@@ -413,6 +423,95 @@ public class ChatActivity extends Activity {
 			}
 		};
 
+	};
+
+	/**
+	 * 文件传输监听
+	 */
+	Runnable fileTansferListenRunnable = new Runnable() {
+
+		@Override
+		public void run() {
+
+			filetransferservice.listenFileTransfer(fileReciveConfirmHandler);
+		}
+
+	};
+
+	Handler fileReciveConfirmHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			mypDialog = new ProgressDialog(context);
+			final FileTransferRequest requestMode = (FileTransferRequest) msg.obj;
+			AlertDialog dialog = new AlertDialog.Builder(context)
+					.setTitle("确认接收文件？")
+					.setMessage("确认接收文件？")
+					.setPositiveButton("确认",
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									new Thread(new Runnable(){
+
+										@Override
+										public void run() {
+											android.os.Message msg = android.os.Message.obtain();
+											msg.obj = ReturnCodeBean.START_RECIVE_FILE;
+											reciveFileProgressHandler.sendMessage(msg);
+											//接收文件
+											filetransferservice.saveReciveFile(true, requestMode, reciveFileProgressHandler);
+										}
+										
+									}).start();
+									
+
+								}
+							}).setNegativeButton("不接受", null).create();
+			dialog.show();
+
+		}
+
+	};
+	
+	Handler reciveFileProgressHandler = new Handler (){
+
+		@Override
+		public void handleMessage(Message msg) {
+			int message = (Integer)msg.obj;
+			String messageConent = "";
+			switch (message){
+			case ReturnCodeBean.START_RECIVE_FILE:
+				messageConent = "开始接收文件";
+				break;
+			case ReturnCodeBean.COMPLITE_RECIVE_FILE:
+				messageConent = "完成接收文件";
+				break;
+			case ReturnCodeBean.ERROR_RECIVE_FILE:
+				messageContent = "接收文件错误";
+				break;
+			}
+			
+
+			if (message == ReturnCodeBean.START_RECIVE_FILE || message == ReturnCodeBean.ERROR_RECIVE_FILE) {
+				Toast.makeText(
+						context,
+						messageConent,
+						Toast.LENGTH_SHORT).show();
+			}
+
+			if (message == ReturnCodeBean.COMPLITE_RECIVE_FILE) {
+				Toast.makeText(
+						context,
+						context.getResources().getString(
+								R.string.file_send_success),
+						Toast.LENGTH_SHORT).show();
+				
+
+			}
+		}
+		
 	};
 
 	/* 消息监听线程 */

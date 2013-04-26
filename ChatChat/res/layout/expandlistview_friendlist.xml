@@ -54,7 +54,7 @@
         <ExpandableListView
             android:id="@+id/expandableListView_FriendList"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="match_parent" >
         </ExpandableListView>
     </LinearLayout>
 

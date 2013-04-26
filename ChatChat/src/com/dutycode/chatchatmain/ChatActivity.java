@@ -93,6 +93,12 @@ public class ChatActivity extends Activity {
 
 	private Context context = ChatActivity.this;
 
+	/**
+	 * 这个地方不是很合适，不应该在这里构造方法中初始化内容，在以后需要更改一下
+	 */
+	public ChatActivity(){
+		filetransferservice = new FileTransferOperateService();
+	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -445,30 +451,56 @@ public class ChatActivity extends Activity {
 			mypDialog = new ProgressDialog(context);
 			final FileTransferRequest requestMode = (FileTransferRequest) msg.obj;
 			AlertDialog dialog = new AlertDialog.Builder(context)
-					.setTitle("确认接收文件？")
-					.setMessage("确认接收文件？")
-					.setPositiveButton("确认",
-							new DialogInterface.OnClickListener() {
+			.setTitle(
+					context.getResources().getString(
+							R.string.file_recive_confirm_title))
+			.setMessage(
+					context.getResources()
+							.getString(
+									R.string.file_recive_confirm_message_content_front)
+							+ requestMode.getRequestor()
+							+ context
+									.getResources()
+									.getString(
+											R.string.file_recive_confirm_message_content_midle)
+							+ requestMode.getFileName()
+							+ context
+									.getResources()
+									.getString(
+											R.string.file_recive_confirm_message_content_end)
+							+ (requestMode.getFileSize()/1024)
+							+ "KB")
+			.setPositiveButton(
+					context.getResources().getString(
+							R.string.file_recive_confirm_btn_ok),
+					new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog,
+								int which) {
+							new Thread(new Runnable() {
 
 								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									new Thread(new Runnable(){
-
-										@Override
-										public void run() {
-											android.os.Message msg = android.os.Message.obtain();
-											msg.obj = ReturnCodeBean.START_RECIVE_FILE;
-											reciveFileProgressHandler.sendMessage(msg);
-											//接收文件
-											filetransferservice.saveReciveFile(true, requestMode, reciveFileProgressHandler);
-										}
-										
-									}).start();
-									
-
+								public void run() {
+									android.os.Message msg = android.os.Message
+											.obtain();
+									msg.obj = ReturnCodeBean.START_RECIVE_FILE;
+									reciveFileProgressHandler
+											.sendMessage(msg);
+									// 接收文件
+									filetransferservice.saveReciveFile(
+											true, requestMode,
+											reciveFileProgressHandler);
 								}
-							}).setNegativeButton("不接受", null).create();
+
+							}).start();
+
+						}
+					})
+			.setNegativeButton(
+					context.getResources().getString(
+							R.string.file_recive_confirm_btn_cancel),
+					null).create();
 			dialog.show();
 
 		}

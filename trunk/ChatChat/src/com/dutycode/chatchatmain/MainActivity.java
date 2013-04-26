@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -39,8 +41,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dutycode.bean.ReturnCodeBean;
 import com.dutycode.service.ChatService;
 import com.dutycode.service.ClientConServer;
+import com.dutycode.service.FileTransferOperateService;
 import com.dutycode.service.NotificationService;
 import com.dutycode.service.UserOperateService;
 
@@ -62,8 +66,8 @@ public class MainActivity extends Activity {
 	private ExpandableListView ex_listview_friendlist;
 	private EditText changePswNewPsw;
 	private EditText changePswNewPswRepet;
-	
-	//头部信息栏控件
+
+	// 头部信息栏控件
 	private TextView titleUserName;
 	private ImageButton titlePresenceStatusIcon;
 	private TextView titlePresenceStatusText;
@@ -78,12 +82,13 @@ public class MainActivity extends Activity {
 
 	private ClientConServer clintconnserver;
 	private UserOperateService useroperateservice;
+	private FileTransferOperateService filetransferservice;
 
 	private String newPsw;
 	private String newPswRepet;
-	
-	//用户状态
-	private Presence.Mode userStatusMode = Presence.Mode.available;//默认初始化为在线
+
+	// 用户状态
+	private Presence.Mode userStatusMode = Presence.Mode.available;// 默认初始化为在线
 
 	private Context context = MainActivity.this;
 
@@ -97,22 +102,24 @@ public class MainActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.expandlistview_friendlist);
 
-//		//在这里添加处理用户状态显示的代码
-//		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.top_title_bar_layout);
-//		//获取指定layout中的控件Id，以方便实例化
-//		final LayoutInflater factory = LayoutInflater.from(MainActivity.this);     
-//        final View titleView = factory.inflate(R.layout.top_title_bar_layout,null);  
-//
+		// //在这里添加处理用户状态显示的代码
+		// getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE,
+		// R.layout.top_title_bar_layout);
+		// //获取指定layout中的控件Id，以方便实例化
+		// final LayoutInflater factory =
+		// LayoutInflater.from(MainActivity.this);
+		// final View titleView =
+		// factory.inflate(R.layout.top_title_bar_layout,null);
+		//
 
-		//初始化控件
-		titleUserName = (TextView)findViewById(R.id.top_title_username);
-		titlePresenceStatusIcon = (ImageButton)findViewById(R.id.top_title_presence_status_ico);
-		titlePresenceStatusText = (TextView)findViewById(R.id.top_title_status);
-		
-		//显示用户状态
+		// 初始化控件
+		titleUserName = (TextView) findViewById(R.id.top_title_username);
+		titlePresenceStatusIcon = (ImageButton) findViewById(R.id.top_title_presence_status_ico);
+		titlePresenceStatusText = (TextView) findViewById(R.id.top_title_status);
+
+		// 显示用户状态
 		presenceStatusOnTitleBarHandler.sendEmptyMessage(0);
-		
-		
+
 		// 获取用户列表，放置到list中
 		Map<String, List<Object>> map = new ClientConServer().getUserList();
 		groupArr = new ArrayList<Object>();
@@ -128,6 +135,8 @@ public class MainActivity extends Activity {
 		}
 
 		useroperateservice = new UserOperateService();
+		filetransferservice = new FileTransferOperateService();
+
 		ex_listview_friendlist = (ExpandableListView) findViewById(R.id.expandableListView_FriendList);
 		ex_listview_friendlist.setAdapter(expandlistviewfriendlistadapter);
 		expandlistviewfriendlistadapter.notifyDataSetChanged();
@@ -183,6 +192,9 @@ public class MainActivity extends Activity {
 		totalMessageListnerThread = new Thread(totalMessageListenerRunnable);
 		totalMessageListnerThread.start();
 
+		// 文件监听线程
+		new Thread(fileTansferListenRunnable).start();
+
 	}
 
 	// 创建菜单
@@ -194,12 +206,14 @@ public class MainActivity extends Activity {
 		menu.add(Menu.NONE, Menu.FIRST + 2, 2,
 				context.getResources().getString(R.string.menu_change_status))
 				.setIcon(R.drawable.menu_settings);
-		menu.add(Menu.NONE, Menu.FIRST + 3, 3,
-				context.getResources().getString(R.string.menu_search_and_add_user))
-				.setIcon(R.drawable.menu_search_user);
-		
-		
-		
+		menu.add(
+				Menu.NONE,
+				Menu.FIRST + 3,
+				3,
+				context.getResources().getString(
+						R.string.menu_search_and_add_user)).setIcon(
+				R.drawable.menu_search_user);
+
 		menu.add(Menu.NONE, Menu.FIRST + 6, 6,
 				context.getResources().getString(R.string.menu_exit_program))
 				.setIcon(R.drawable.menu_logout);
@@ -219,11 +233,11 @@ public class MainActivity extends Activity {
 			changeStatusHandler.sendEmptyMessage(0);
 			break;
 		case Menu.FIRST + 3:
-			Intent searchIntent = new Intent(MainActivity.this, SearchUserActivity.class);
+			Intent searchIntent = new Intent(MainActivity.this,
+					SearchUserActivity.class);
 			startActivity(searchIntent);
 			break;
-			
-			
+
 		case Menu.FIRST + 6:
 			// 退出程序
 			notificationmanger.cancelAll();
@@ -335,66 +349,74 @@ public class MainActivity extends Activity {
 	/**
 	 * 当前用户状态Handler
 	 */
-	Handler presenceStatusOnTitleBarHandler = new Handler (){
+	Handler presenceStatusOnTitleBarHandler = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
-//			//TODO 在这里添加处理用户状态显示的代码
-//			getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.top_title_bar_layout);
-//			//初始化控件
-//			titleUserName = (TextView)findViewById(R.id.top_title_username);
-//			titlePresenceStatusIcon = (ImageButton)findViewById(R.id.top_title_presence_status_ico);
-//			titlePresenceStatusText = (TextView)findViewById(R.id.top_title_status);
+			// //TODO 在这里添加处理用户状态显示的代码
+			// getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE,
+			// R.layout.top_title_bar_layout);
+			// //初始化控件
+			// titleUserName = (TextView)findViewById(R.id.top_title_username);
+			// titlePresenceStatusIcon =
+			// (ImageButton)findViewById(R.id.top_title_presence_status_ico);
+			// titlePresenceStatusText =
+			// (TextView)findViewById(R.id.top_title_status);
 
-			int imgUserPresenceStatus ;
+			int imgUserPresenceStatus;
 			String statusText = "";
 			switch (userStatusMode) {
 			case available:
-				statusText = context.getResources().getString(R.string.change_status_available);
+				statusText = context.getResources().getString(
+						R.string.change_status_available);
 				imgUserPresenceStatus = R.drawable.available;
 				break;
 			case away:
-				statusText = context.getResources().getString(R.string.change_status_away);
+				statusText = context.getResources().getString(
+						R.string.change_status_away);
 				imgUserPresenceStatus = R.drawable.away;
 				break;
 			case chat:
-				statusText = context.getResources().getString(R.string.change_status_chat);
+				statusText = context.getResources().getString(
+						R.string.change_status_chat);
 				imgUserPresenceStatus = R.drawable.chat;
 				break;
 			case dnd:
-				statusText = context.getResources().getString(R.string.change_status_dnd);
+				statusText = context.getResources().getString(
+						R.string.change_status_dnd);
 				imgUserPresenceStatus = R.drawable.dnd;
 				break;
 			case xa:
-				statusText = context.getResources().getString(R.string.change_status_xa);
+				statusText = context.getResources().getString(
+						R.string.change_status_xa);
 				imgUserPresenceStatus = R.drawable.xa;
 				break;
 			default:
-				statusText = context.getResources().getString(R.string.change_status_available);
+				statusText = context.getResources().getString(
+						R.string.change_status_available);
 				imgUserPresenceStatus = R.drawable.available;
 				break;
 			}
-			
-			//设置界面
+
+			// 设置界面
 			titleUserName.setText(MainActivity.userloginname);
 			titlePresenceStatusIcon.setImageResource(imgUserPresenceStatus);
 			titlePresenceStatusText.setText(statusText);
-			
-			
+
 			titlePresenceStatusIcon.setOnTouchListener(new OnTouchListener() {
-				
+
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
-					//处理点击事件
-					if (event.getAction() == MotionEvent.ACTION_DOWN){
+					// 处理点击事件
+					if (event.getAction() == MotionEvent.ACTION_DOWN) {
 						changeStatusHandler.sendEmptyMessage(0);
 					}
 					return false;
 				}
 			});
-			
+
 		}
-		
+
 	};
 	/**
 	 * 服务器连接状态监听器
@@ -544,87 +566,201 @@ public class MainActivity extends Activity {
 	/**
 	 * 修改用户状态Handler，
 	 */
-	Handler changeStatusHandler = new Handler(){
+	Handler changeStatusHandler = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
 			/*
-			 * 状态：分别为：
-			 * 在线 available
-			 * 离开 away
-			 * 可以聊天 chat
-			 * 请勿打扰 dnd
-			 * 不在电脑旁 xa
-			 * */
-            String[] presenceMode ={context.getResources().getString(R.string.change_status_available),
-            		context.getResources().getString(R.string.change_status_away),
-            		context.getResources().getString(R.string.change_status_chat),
-            		context.getResources().getString(R.string.change_status_dnd),
-            		context.getResources().getString(R.string.change_status_xa)};  
-                 //包含多个选项的对话框   
-            AlertDialog dialog = new AlertDialog.Builder(context)  
-                     .setIcon(android.R.drawable.btn_star)  
-                     .setTitle(context.getResources().getString(R.string.change_status_title))  
-                     .setItems(presenceMode, onStatusSelectClick).create();  
-            dialog.show();  
+			 * 状态：分别为： 在线 available 离开 away 可以聊天 chat 请勿打扰 dnd 不在电脑旁 xa
+			 */
+			String[] presenceMode = {
+					context.getResources().getString(
+							R.string.change_status_available),
+					context.getResources().getString(
+							R.string.change_status_away),
+					context.getResources().getString(
+							R.string.change_status_chat),
+					context.getResources()
+							.getString(R.string.change_status_dnd),
+					context.getResources().getString(R.string.change_status_xa) };
+			// 包含多个选项的对话框
+			AlertDialog dialog = new AlertDialog.Builder(context)
+					.setIcon(android.R.drawable.btn_star)
+					.setTitle(
+							context.getResources().getString(
+									R.string.change_status_title))
+					.setItems(presenceMode, onStatusSelectClick).create();
+			dialog.show();
 
 		}
-		
+
 	};
-	
+
 	/**
 	 * 弹出的状态栏中的点击监听事件
 	 */
 	OnClickListener onStatusSelectClick = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(DialogInterface _dialog, int _which) {
-			switch (_which){
+			switch (_which) {
 			case 0:
-				//TODO 在线
+				// TODO 在线
 				userStatusMode = Presence.Mode.available;
 				break;
 			case 1:
-				//TODO 离开
+				// TODO 离开
 				userStatusMode = Presence.Mode.away;
 				break;
 			case 2:
-				//TODO chat
+				// TODO chat
 				userStatusMode = Presence.Mode.chat;
 				break;
 			case 3:
-				//TODO dnd
+				// TODO dnd
 				userStatusMode = Presence.Mode.dnd;
 				break;
 			case 4:
-				//TODO xa
+				// TODO xa
 				userStatusMode = Presence.Mode.xa;
 				break;
 			default:
-				userStatusMode =  Presence.Mode.available;
+				userStatusMode = Presence.Mode.available;
 			}
-			
-			
+
 			new Thread(changeStatusModeRunnable).start();
-			
+
 		}
 	};
-	
+
 	/**
-	 * 修改状态线程， 
+	 * 修改状态线程，
 	 */
-	Runnable changeStatusModeRunnable = new Runnable(){
+	Runnable changeStatusModeRunnable = new Runnable() {
 
 		@Override
 		public void run() {
-			
+
 			clintconnserver.setMode(userStatusMode);
-			//重新加载新的用户状态
+			// 重新加载新的用户状态
 			presenceStatusOnTitleBarHandler.sendEmptyMessage(0);
 		}
-		
+
 	};
-	
+
+	/**
+	 * 文件传输监听
+	 */
+	Runnable fileTansferListenRunnable = new Runnable() {
+
+		@Override
+		public void run() {
+
+			filetransferservice.listenFileTransfer(fileReciveConfirmHandler);
+		}
+
+	};
+
+	Handler fileReciveConfirmHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			ProgressDialog mypDialog = new ProgressDialog(context);
+			mypDialog = new ProgressDialog(context);
+			final FileTransferRequest requestMode = (FileTransferRequest) msg.obj;
+			AlertDialog dialog = new AlertDialog.Builder(context)
+					.setTitle(
+							context.getResources().getString(
+									R.string.file_recive_confirm_title))
+					.setMessage(
+							context.getResources()
+									.getString(
+											R.string.file_recive_confirm_message_content_front)
+									+ requestMode.getRequestor()
+									+ context
+											.getResources()
+											.getString(
+													R.string.file_recive_confirm_message_content_midle)
+									+ requestMode.getFileName()
+									+ context
+											.getResources()
+											.getString(
+													R.string.file_recive_confirm_message_content_end)
+									+ (requestMode.getFileSize()/1024)
+									+ "KB")
+					.setPositiveButton(
+							context.getResources().getString(
+									R.string.file_recive_confirm_btn_ok),
+							new DialogInterface.OnClickListener() {
+
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									new Thread(new Runnable() {
+
+										@Override
+										public void run() {
+											android.os.Message msg = android.os.Message
+													.obtain();
+											msg.obj = ReturnCodeBean.START_RECIVE_FILE;
+											reciveFileProgressHandler
+													.sendMessage(msg);
+											// 接收文件
+											filetransferservice.saveReciveFile(
+													true, requestMode,
+													reciveFileProgressHandler);
+										}
+
+									}).start();
+
+								}
+							})
+					.setNegativeButton(
+							context.getResources().getString(
+									R.string.file_recive_confirm_btn_cancel),
+							null).create();
+			dialog.show();
+
+		}
+
+	};
+
+	Handler reciveFileProgressHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			int message = (Integer) msg.obj;
+			String messageConent = "";
+			switch (message) {
+			case ReturnCodeBean.START_RECIVE_FILE:
+				messageConent = "开始接收文件";
+				break;
+			case ReturnCodeBean.COMPLITE_RECIVE_FILE:
+				messageConent = "完成接收文件";
+				break;
+			case ReturnCodeBean.ERROR_RECIVE_FILE:
+				messageConent = "接收文件错误";
+				break;
+			}
+
+			if (message == ReturnCodeBean.START_RECIVE_FILE
+					|| message == ReturnCodeBean.ERROR_RECIVE_FILE) {
+				Toast.makeText(context, messageConent, Toast.LENGTH_SHORT)
+						.show();
+			}
+
+			if (message == ReturnCodeBean.COMPLITE_RECIVE_FILE) {
+				Toast.makeText(
+						context,
+						context.getResources().getString(
+								R.string.file_send_success), Toast.LENGTH_SHORT)
+						.show();
+
+			}
+		}
+
+	};
+
 	private class ExpandListViewFriendListAdapter extends
 			BaseExpandableListAdapter {
 
@@ -732,7 +868,7 @@ public class MainActivity extends Activity {
 					ViewGroup.LayoutParams.MATCH_PARENT, 80);
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
-//			text.setWidth(LayoutParams.MATCH_PARENT);
+			// text.setWidth(LayoutParams.MATCH_PARENT);
 			text.setBackgroundResource(R.drawable.chat_list_child_list);
 			text.setGravity(Gravity.TOP | Gravity.LEFT);
 			text.setPadding(40, 0, 0, 0);
@@ -753,7 +889,7 @@ public class MainActivity extends Activity {
 			TextView text = new TextView(MainActivity.this);
 			text.setLayoutParams(layoutParams);
 			text.setBackgroundResource(R.drawable.chat_list_group_list);
-//			text.setWidth(LayoutParams.MATCH_PARENT);
+			// text.setWidth(LayoutParams.MATCH_PARENT);
 			text.setGravity(Gravity.TOP | Gravity.LEFT);
 			text.setPadding(50, 0, 0, 5);
 			text.setTextSize(20);

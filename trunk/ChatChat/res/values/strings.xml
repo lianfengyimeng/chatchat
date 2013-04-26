@@ -89,5 +89,11 @@
     <string name="file_send_request_other_acept">正在等待对方接受</string>
     <string name="file_send_success">完成</string>
     <string name="file_send_in_progress">正在传输，请稍等</string>
+    <string name="file_recive_confirm_title">接收文件</string>
+    <string name="file_recive_confirm_btn_ok">确认接收</string>
+    <string name="file_recive_confirm_btn_cancel">取消接收</string>
+    <string name="file_recive_confirm_message_content_front">确定接收来自：</string><!-- 接收文件消息内容的前部分 -->
+    <string name="file_recive_confirm_message_content_midle">的文件，文件名：</string><!-- 接收文件消息内容的中间部分 -->
+    <string name="file_recive_confirm_message_content_end">文件大小：</string><!-- 接收文件消息内容的后部分 -->
     
 </resources>

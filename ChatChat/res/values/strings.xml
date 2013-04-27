@@ -80,6 +80,7 @@
     
     
     <!-- 传文件 -->
+    <string name="file_dialog_read_from_dir">选择文件</string>
     <string name="file_send_file_title">发送文件</string>
     <string name="file_btn_send_file">传文件</string>
     <string name="file_sendfile_tip">请点击选择文件按钮选择文件</string>

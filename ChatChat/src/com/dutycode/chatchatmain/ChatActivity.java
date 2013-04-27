@@ -1,5 +1,6 @@
 package com.dutycode.chatchatmain;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +15,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
@@ -44,6 +47,8 @@ import com.dutycode.service.FileTransferOperateService;
 public class ChatActivity extends Activity {
 
 	private XMPPConnection connection;
+
+	private static final int REQUEST_EX = 1;
 
 	private TextView textviewChatWith;
 	/**
@@ -96,14 +101,20 @@ public class ChatActivity extends Activity {
 	/**
 	 * 这个地方不是很合适，不应该在这里构造方法中初始化内容，在以后需要更改一下
 	 */
-	public ChatActivity(){
+	public ChatActivity() {
 		filetransferservice = new FileTransferOperateService();
 	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+		// 启动activity时不自动弹出软键盘
+		getWindow().setSoftInputMode(
+				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
 		setContentView(R.layout.activity_chat);
 		// 得到connection对象
 		connection = (XMPPConnection) ClientConServer.connection;
@@ -240,6 +251,22 @@ public class ChatActivity extends Activity {
 	}
 
 	/**
+	 * 回调函数，选择文件后返回文件路径
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent) {
+		if (resultCode == RESULT_OK) {
+			if (requestCode == REQUEST_EX) {
+				Uri uri = intent.getData();
+				filePath = uri.getPath();
+				editSendFilePath.setText(filePath);
+				System.out.println("===" + filePath);
+			}
+		}
+	}
+
+	/**
 	 * 发送文件Handler
 	 */
 	Handler sendFileHandler = new Handler() {
@@ -251,11 +278,30 @@ public class ChatActivity extends Activity {
 
 			View view = inflater.inflate(R.layout.send_file_layout, null);
 
+			//TODO
+			
 			// 初始化控件
 			editSendFilePath = (EditText) view
 					.findViewById(R.id.send_file_file_path);
 			btnSelectFile = (Button) view
 					.findViewById(R.id.send_file_btn_select_file);
+
+			// 打开选择文件对话框
+			btnSelectFile.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					// TODO 打开文件对话框
+					Intent intent = new Intent();
+					intent.putExtra("explorer_title",
+							getString(R.string.file_dialog_read_from_dir));
+					intent.setDataAndType(Uri.fromFile(new File("/sdcard")),
+							"*/*");
+					intent.setClass(ChatActivity.this, ExDialog.class);
+					startActivityForResult(intent, REQUEST_EX);
+
+				}
+			});
 
 			AlertDialog dialog = new AlertDialog.Builder(ChatActivity.this)
 					.setIcon(R.drawable.chatchat)
@@ -272,7 +318,12 @@ public class ChatActivity extends Activity {
 									// TODO
 									filePath = editSendFilePath.getText()
 											.toString().trim();
-									new Thread(sendFileRunnable).start();
+									if ("".equals(filePath)) {
+										Toast.makeText(context, "还没选择文件",
+												Toast.LENGTH_SHORT).show();
+									} else {
+										new Thread(sendFileRunnable).start();
+									}
 
 								}
 							})
@@ -283,6 +334,19 @@ public class ChatActivity extends Activity {
 
 			dialog.show();
 		}
+
+		// protected void onActivityResult(int requestCode, int resultCode,
+		// Intent intent) {
+		// String path;
+		// if (resultCode == RESULT_OK) {
+		// if (requestCode == REQUEST_EX) {
+		// Uri uri = intent.getData();
+		// // TextView text = (TextView) findViewById(R.id.text);
+		// // text.setText("select: " + uri);
+		// filePath = uri.toString();
+		// }
+		// }
+		// }
 
 	};
 
@@ -338,7 +402,7 @@ public class ChatActivity extends Activity {
 		public void run() {
 			// TODO 发送文件线程
 			// 这里只是用于测试
-			filePath = Fileconfig.sdrootpath + "a.jpg";
+			// filePath = Fileconfig.sdrootpath + "a.jpg";
 			// FileTransferOperateService filet = new
 			// FileTransferOperateService();
 			OutgoingFileTransfer transfer = filetransferservice.sendFile(
@@ -370,7 +434,7 @@ public class ChatActivity extends Activity {
 
 				}
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(600);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -378,9 +442,10 @@ public class ChatActivity extends Activity {
 			}
 			if (transfer.isDone()) {
 				System.out.println("Done!");
-				msg.obj = context.getResources().getString(
+				android.os.Message msgend = android.os.Message.obtain();
+				msgend.obj = context.getResources().getString(
 						R.string.file_send_success);
-				sendFileProgressHandler.sendMessage(msg);
+				sendFileProgressHandler.sendMessage(msgend);
 			}
 
 		};
@@ -397,7 +462,7 @@ public class ChatActivity extends Activity {
 				// 设置进度条风格，风格为圆形，旋转的
 				mypDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 				// 设置ProgressDialog 标题
-				mypDialog.setTitle("Google");
+				mypDialog.setTitle(context.getResources().getString(R.string.file_send_file_title));
 				// 设置ProgressDialog 提示信息
 				mypDialog.setMessage(message);
 				// 设置ProgressDialog 标题图标
@@ -451,69 +516,68 @@ public class ChatActivity extends Activity {
 			mypDialog = new ProgressDialog(context);
 			final FileTransferRequest requestMode = (FileTransferRequest) msg.obj;
 			AlertDialog dialog = new AlertDialog.Builder(context)
-			.setTitle(
-					context.getResources().getString(
-							R.string.file_recive_confirm_title))
-			.setMessage(
-					context.getResources()
-							.getString(
-									R.string.file_recive_confirm_message_content_front)
-							+ requestMode.getRequestor()
-							+ context
-									.getResources()
+					.setTitle(
+							context.getResources().getString(
+									R.string.file_recive_confirm_title))
+					.setMessage(
+							context.getResources()
 									.getString(
-											R.string.file_recive_confirm_message_content_midle)
-							+ requestMode.getFileName()
-							+ context
-									.getResources()
-									.getString(
-											R.string.file_recive_confirm_message_content_end)
-							+ (requestMode.getFileSize()/1024)
-							+ "KB")
-			.setPositiveButton(
-					context.getResources().getString(
-							R.string.file_recive_confirm_btn_ok),
-					new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog,
-								int which) {
-							new Thread(new Runnable() {
+											R.string.file_recive_confirm_message_content_front)
+									+ requestMode.getRequestor()
+									+ context
+											.getResources()
+											.getString(
+													R.string.file_recive_confirm_message_content_midle)
+									+ requestMode.getFileName()
+									+ context
+											.getResources()
+											.getString(
+													R.string.file_recive_confirm_message_content_end)
+									+ (requestMode.getFileSize() / 1024) + "KB")
+					.setPositiveButton(
+							context.getResources().getString(
+									R.string.file_recive_confirm_btn_ok),
+							new DialogInterface.OnClickListener() {
 
 								@Override
-								public void run() {
-									android.os.Message msg = android.os.Message
-											.obtain();
-									msg.obj = ReturnCodeBean.START_RECIVE_FILE;
-									reciveFileProgressHandler
-											.sendMessage(msg);
-									// 接收文件
-									filetransferservice.saveReciveFile(
-											true, requestMode,
-											reciveFileProgressHandler);
+								public void onClick(DialogInterface dialog,
+										int which) {
+									new Thread(new Runnable() {
+
+										@Override
+										public void run() {
+											android.os.Message msg = android.os.Message
+													.obtain();
+											msg.obj = ReturnCodeBean.START_RECIVE_FILE;
+											reciveFileProgressHandler
+													.sendMessage(msg);
+											// 接收文件
+											filetransferservice.saveReciveFile(
+													true, requestMode,
+													reciveFileProgressHandler);
+										}
+
+									}).start();
+
 								}
-
-							}).start();
-
-						}
-					})
-			.setNegativeButton(
-					context.getResources().getString(
-							R.string.file_recive_confirm_btn_cancel),
-					null).create();
+							})
+					.setNegativeButton(
+							context.getResources().getString(
+									R.string.file_recive_confirm_btn_cancel),
+							null).create();
 			dialog.show();
 
 		}
 
 	};
-	
-	Handler reciveFileProgressHandler = new Handler (){
+
+	Handler reciveFileProgressHandler = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
-			int message = (Integer)msg.obj;
+			int message = (Integer) msg.obj;
 			String messageConent = "";
-			switch (message){
+			switch (message) {
 			case ReturnCodeBean.START_RECIVE_FILE:
 				messageConent = "开始接收文件";
 				break;
@@ -524,26 +588,23 @@ public class ChatActivity extends Activity {
 				messageContent = "接收文件错误";
 				break;
 			}
-			
 
-			if (message == ReturnCodeBean.START_RECIVE_FILE || message == ReturnCodeBean.ERROR_RECIVE_FILE) {
-				Toast.makeText(
-						context,
-						messageConent,
-						Toast.LENGTH_SHORT).show();
+			if (message == ReturnCodeBean.START_RECIVE_FILE
+					|| message == ReturnCodeBean.ERROR_RECIVE_FILE) {
+				Toast.makeText(context, messageConent, Toast.LENGTH_SHORT)
+						.show();
 			}
 
 			if (message == ReturnCodeBean.COMPLITE_RECIVE_FILE) {
 				Toast.makeText(
 						context,
 						context.getResources().getString(
-								R.string.file_send_success),
-						Toast.LENGTH_SHORT).show();
-				
+								R.string.file_send_success), Toast.LENGTH_SHORT)
+						.show();
 
 			}
 		}
-		
+
 	};
 
 	/* 消息监听线程 */

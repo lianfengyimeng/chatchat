@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.dutycode.chatchatmain.LoginActivity"
+            android:name="com.dutycode.chatchatmain.LoadActivity"
             android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize|stateVisible" >
              <intent-filter>
@@ -27,6 +27,12 @@
             </intent-filter>
         </activity>
         
+        <activity
+            android:name="com.dutycode.chatchatmain.LoginActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
+            
+        </activity>
         <activity
             android:name="com.dutycode.chatchatmain.MainActivity"
             android:label="@string/app_name"
